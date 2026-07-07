@@ -1171,6 +1171,13 @@
         <button class="btn btn-primary" onclick="exportarDatos()">Exportar copia (.json)</button>
         <button class="btn btn-ghost" onclick="document.getElementById('ajImportarInput').click()">Importar copia</button>
         <input type="file" id="ajImportarInput" accept="application/json" style="display:none;" onchange="importarDatos(event)">
+      </div>
+      <div class="actions" style="margin-top:10px;">
+        <button class="btn btn-print" onclick="exportarSolicitudesPDF()">Exportar todas las Solicitudes (PDF)</button>
+        <button class="btn btn-print" onclick="exportarProtocolosPDF()">Exportar todos los Protocolos (PDF)</button>
+      </div>
+      <p class="ajustes-desc" style="margin-top:8px;font-size:11.5px;">Se abre el diálogo de impresión del navegador: elegí "Guardar como PDF" como destino.</p>
+      <div class="actions" style="margin-top:6px;">
         <span class="status-msg" id="ajustesBackupStatusMsg"></span>
       </div>
     </div>
@@ -1952,6 +1959,85 @@ function imprimir(){
   generarPaginasImpresion();
   centrarTodosLosNumeros();
   setTimeout(()=> window.print(), 60);
+}
+
+async function exportarSolicitudesPDF(){
+  const statusEl = document.getElementById('ajustesBackupStatusMsg');
+  const todas = await obtenerTodas();
+  if(todas.length === 0){
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'No hay solicitudes guardadas para exportar.';
+    setTimeout(()=>{ statusEl.textContent=''; }, 3000);
+    return;
+  }
+
+  todas.sort((a,b) => {
+    const pa = parsearNumeroSolicitud(a.numero), pb = parsearNumeroSolicitud(b.numero);
+    if(pa.anio !== pb.anio) return String(pa.anio||'').localeCompare(String(pb.anio||''));
+    if(pa.n !== null && pb.n !== null) return pa.n - pb.n;
+    return (a.guardadoEn||'').localeCompare(b.guardadoEn||'');
+  });
+
+  const ITEMS_POR_HOJA = 10;
+  const container = document.getElementById('printPages');
+  container.innerHTML = '';
+
+  todas.forEach(data => {
+    let chunks = [];
+    for(let i=0; i<(data.items||[]).length; i+=ITEMS_POR_HOJA){
+      chunks.push(data.items.slice(i, i+ITEMS_POR_HOJA));
+    }
+    if(chunks.length === 0) chunks.push([]);
+
+    chunks.forEach((itemsPagina, idx) => {
+      const numeroPagina = chunks.length > 1 ? `${data.numero || ''} (${idx+1}/${chunks.length})` : (data.numero || '');
+      const totalPagina = itemsPagina.reduce((s, it) => s + (it.cant||0) * (it.unit||0), 0);
+      container.insertAdjacentHTML('beforeend', construirPaginaHTML(data, itemsPagina, numeroPagina, totalPagina, false));
+    });
+  });
+
+  statusEl.style.color = 'var(--ok)';
+  statusEl.textContent = `Preparando PDF de ${todas.length} solicitud(es)...`;
+
+  setTimeout(() => {
+    centrarTodosLosNumeros();
+    setTimeout(() => {
+      window.print();
+      statusEl.textContent = '';
+    }, 60);
+  }, 60);
+}
+
+async function exportarProtocolosPDF(){
+  const statusEl = document.getElementById('ajustesBackupStatusMsg');
+  const todos = await obtenerProtocolos();
+  if(todos.length === 0){
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'No hay protocolos guardados para exportar.';
+    setTimeout(()=>{ statusEl.textContent=''; }, 3000);
+    return;
+  }
+
+  todos.sort((a,b) => {
+    const pa = parsearNumeroSolicitud(a.numero), pb = parsearNumeroSolicitud(b.numero);
+    if(pa.anio !== pb.anio) return String(pa.anio||'').localeCompare(String(pb.anio||''));
+    if(pa.n !== null && pb.n !== null) return pa.n - pb.n;
+    return (a.guardadoEn||'').localeCompare(b.guardadoEn||'');
+  });
+
+  const container = document.getElementById('printPages');
+  container.innerHTML = '';
+  todos.forEach(data => {
+    container.insertAdjacentHTML('beforeend', construirProtocoloHTML(data));
+  });
+
+  statusEl.style.color = 'var(--ok)';
+  statusEl.textContent = `Preparando PDF de ${todos.length} protocolo(s)...`;
+
+  setTimeout(() => {
+    window.print();
+    statusEl.textContent = '';
+  }, 60);
 }
 
 // ---- Proveedores (directorio reutilizable) ----
