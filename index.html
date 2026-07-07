@@ -214,7 +214,7 @@
     font-weight:600;
     letter-spacing:0.02em;
   }
-  .field input, .field textarea{
+  .field input, .field textarea, .field select{
     border:1px solid var(--paper-line);
     border-radius:7px;
     padding:9px 11px;
@@ -224,7 +224,7 @@
     background:var(--white);
     transition:border-color .15s ease, box-shadow .15s ease;
   }
-  .field input:focus, .field textarea:focus{
+  .field input:focus, .field textarea:focus, .field select:focus{
     outline:none;
     border-color:var(--navy);
     box-shadow:0 0 0 3px rgba(22,54,80,0.10);
@@ -238,6 +238,22 @@
     border-color:var(--danger);
     background:var(--error-bg);
   }
+
+  /* ---------- Reportes ---------- */
+  .rep-filtros{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:14px;
+  }
+  .rep-resumen{
+    margin:18px 0 14px;
+    padding:14px 16px;
+    background:var(--surface-2);
+    border-radius:9px;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .rep-resumen b{color:var(--heading);font-family:var(--font-display);}
   .field-warning{
     display:none;
     font-size:11.5px;
@@ -510,6 +526,9 @@
     padding:20px;
   }
   .modal-overlay.open{display:flex;}
+  /* Los modales de detalle (Ver) deben quedar por encima de otros modales
+     (ej: Reportes) cuando se abren desde adentro de ellos. */
+  #modalVerSolicitud, #modalVerProtocolo{z-index:1100;}
   .modal-box{
     background:var(--surface);
     border-radius:14px;
@@ -666,7 +685,7 @@
     .inicio-titulo{font-size:21px;}
     .inicio-hero{padding:26px 16px;}
 
-    .field input, .field textarea,
+    .field input, .field textarea, .field select,
     table.items input, table.items textarea,
     #ajLegajoForzado, #ajNumeroForzado{
       font-size:16px; /* evita el zoom automático de iOS al enfocar */
@@ -678,6 +697,27 @@
     .inicio-accesos{grid-template-columns:1fr 1fr;}
     .ver-grid{grid-template-columns:1fr;}
   }
+
+  /* ---------- Informe impreso de Reportes ---------- */
+  .informe-print{
+    padding:14mm 12mm;
+    font-family:Arial, Helvetica, sans-serif;
+    color:#111;
+  }
+  .informe-print h1{
+    font-size:19px;margin:0 0 6px;font-weight:700;
+  }
+  .informe-meta{font-size:11px;color:#444;margin:2px 0;}
+  .informe-print table{
+    width:100%;border-collapse:collapse;margin-top:16px;font-size:11.5px;
+  }
+  .informe-print th, .informe-print td{
+    border:1px solid #999;padding:6px 8px;text-align:left;vertical-align:top;
+  }
+  .informe-print thead{display:table-header-group;}
+  .informe-print thead th{background:#e8e8e8;font-weight:700;}
+  .informe-print tfoot td{font-weight:700;background:#f2f2f2;}
+  .informe-print tr{break-inside:avoid;}
 
   @media print{
     body *{visibility:hidden;}
@@ -1060,6 +1100,9 @@
       <button class="btn btn-ghost btn-icon" onclick="switchTab('hist')" title="Historial" aria-label="Historial">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 16 14"></polyline></svg>
       </button>
+      <button class="btn btn-ghost btn-icon" onclick="abrirModalReportes()" title="Reportes" aria-label="Reportes">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+      </button>
       <span class="status-msg" id="statusMsg"></span>
   </aside>
   </div>
@@ -1390,6 +1433,47 @@
       <button class="modal-close" onclick="cerrarModalVerProtocolo()" aria-label="Cerrar">✕</button>
     </div>
     <div class="modal-body" id="verProtocoloBody"></div>
+  </div>
+</div>
+
+<!-- ===== MODAL REPORTES DE SOLICITUDES ===== -->
+<div class="modal-overlay" id="modalReportes" onclick="if(event.target===this) cerrarModalReportes()">
+  <div class="modal-box" style="max-width:760px;">
+    <div class="modal-header">
+      <h3>Reportes de Solicitudes</h3>
+      <button class="modal-close" onclick="cerrarModalReportes()" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="rep-filtros">
+        <div class="field">
+          <label>Fecha desde</label>
+          <input type="date" id="repDesde">
+        </div>
+        <div class="field">
+          <label>Fecha hasta</label>
+          <input type="date" id="repHasta">
+        </div>
+        <div class="field">
+          <label>Oficina solicitante</label>
+          <select id="repOficina"><option value="">Todas</option></select>
+        </div>
+        <div class="field">
+          <label>Proveedor</label>
+          <select id="repProveedor"><option value="">Todos</option></select>
+        </div>
+        <div class="field">
+          <label>Destino</label>
+          <input type="text" id="repDestino" placeholder="Buscar por destino..." oninput="generarReporte()">
+        </div>
+      </div>
+      <div class="actions" style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="generarReporte()">Generar reporte</button>
+        <button class="btn btn-print" onclick="imprimirReporte()">Imprimir informe</button>
+        <button class="btn btn-ghost" onclick="limpiarFiltrosReporte()">Limpiar filtros</button>
+      </div>
+      <div id="repResumen" class="rep-resumen" style="display:none;"></div>
+      <div id="repResultados" class="hist-list"></div>
+    </div>
   </div>
 </div>
 
@@ -1815,6 +1899,183 @@ async function verSolicitud(id){
 
 function cerrarModalVerSolicitud(){
   document.getElementById('modalVerSolicitud').classList.remove('open');
+}
+
+// ================= REPORTES DE SOLICITUDES =================
+function fechaDeSolicitud(s){
+  const idx = indiceMes(s.mes);
+  if(idx === -1 || !s.dia || !s.anio) return null;
+  return new Date(2000 + parseInt(s.anio, 10), idx, parseInt(s.dia, 10));
+}
+
+async function abrirModalReportes(){
+  const oficinas = await obtenerOficinas();
+  const proveedores = await obtenerProveedores();
+
+  const selOficina = document.getElementById('repOficina');
+  const selProveedor = document.getElementById('repProveedor');
+  const valOficinaPrevio = selOficina.value;
+  const valProveedorPrevio = selProveedor.value;
+
+  selOficina.innerHTML = '<option value="">Todas</option>' +
+    oficinas.map(o => `<option value="${escapeHtml(o.nombre)}">${escapeHtml(o.nombre)}</option>`).join('');
+  selProveedor.innerHTML = '<option value="">Todos</option>' +
+    proveedores.map(p => `<option value="${escapeHtml(p.nombre)}">${escapeHtml(p.nombre)}</option>`).join('');
+
+  selOficina.value = valOficinaPrevio;
+  selProveedor.value = valProveedorPrevio;
+
+  document.getElementById('modalReportes').classList.add('open');
+}
+
+function cerrarModalReportes(){
+  document.getElementById('modalReportes').classList.remove('open');
+}
+
+function limpiarFiltrosReporte(){
+  document.getElementById('repDesde').value = '';
+  document.getElementById('repHasta').value = '';
+  document.getElementById('repOficina').value = '';
+  document.getElementById('repProveedor').value = '';
+  document.getElementById('repDestino').value = '';
+  document.getElementById('repResumen').style.display = 'none';
+  document.getElementById('repResultados').innerHTML = '';
+}
+
+let ultimoReporteFiltrado = [];
+
+function descripcionFiltrosReporte(){
+  const partes = [];
+  const desdeVal = document.getElementById('repDesde').value;
+  const hastaVal = document.getElementById('repHasta').value;
+  const oficinaVal = document.getElementById('repOficina').value;
+  const proveedorVal = document.getElementById('repProveedor').value;
+  const destinoVal = document.getElementById('repDestino').value.trim();
+
+  if(desdeVal || hastaVal){
+    const fmtFecha = (v) => v ? new Date(v + 'T00:00:00').toLocaleDateString('es-AR') : '';
+    partes.push(`Fecha: ${desdeVal ? 'desde ' + fmtFecha(desdeVal) : ''} ${hastaVal ? 'hasta ' + fmtFecha(hastaVal) : ''}`.trim());
+  }
+  if(oficinaVal) partes.push(`Oficina: ${oficinaVal}`);
+  if(proveedorVal) partes.push(`Proveedor: ${proveedorVal}`);
+  if(destinoVal) partes.push(`Destino: "${destinoVal}"`);
+
+  return partes.length ? partes.join('  ·  ') : 'Sin filtros (todas las solicitudes)';
+}
+
+async function calcularReporte(){
+  const todas = await obtenerTodas();
+  const desdeVal = document.getElementById('repDesde').value;
+  const hastaVal = document.getElementById('repHasta').value;
+  const oficinaVal = document.getElementById('repOficina').value;
+  const proveedorVal = document.getElementById('repProveedor').value;
+  const destinoVal = document.getElementById('repDestino').value.trim().toLowerCase();
+
+  const desde = desdeVal ? new Date(desdeVal + 'T00:00:00') : null;
+  const hasta = hastaVal ? new Date(hastaVal + 'T23:59:59') : null;
+
+  const filtradas = todas.filter(s => {
+    if(oficinaVal && s.oficina !== oficinaVal) return false;
+    if(proveedorVal && s.senor !== proveedorVal) return false;
+    if(destinoVal && !(s.destino || '').toLowerCase().includes(destinoVal)) return false;
+    if(desde || hasta){
+      const f = fechaDeSolicitud(s);
+      if(!f) return false;
+      if(desde && f < desde) return false;
+      if(hasta && f > hasta) return false;
+    }
+    return true;
+  });
+
+  filtradas.sort((a, b) => {
+    const fa = fechaDeSolicitud(a), fb = fechaDeSolicitud(b);
+    if(fa && fb) return fb - fa;
+    return (b.guardadoEn || '').localeCompare(a.guardadoEn || '');
+  });
+
+  return filtradas;
+}
+
+async function generarReporte(){
+  const filtradas = await calcularReporte();
+  ultimoReporteFiltrado = filtradas;
+
+  const totalGeneral = filtradas.reduce((sum, s) => sum + (s.total || 0), 0);
+
+  const resumenEl = document.getElementById('repResumen');
+  resumenEl.style.display = 'block';
+  resumenEl.innerHTML = `<b>${filtradas.length}</b> solicitud(es) encontrada(s) — Total: <b>$ ${fmtMoney(totalGeneral)}</b>`;
+
+  const cont = document.getElementById('repResultados');
+  if(filtradas.length === 0){
+    cont.innerHTML = '<div class="empty-state">No se encontraron solicitudes con esos filtros.</div>';
+    return;
+  }
+
+  cont.innerHTML = filtradas.map(s => `
+    <div class="hist-item">
+      <div class="hist-info">
+        <b>N° ${escapeHtml(s.numero || '(sin número)')}</b> — ${escapeHtml(s.senor || 'Sin proveedor')}
+        <span>${escapeHtml(s.dia || '—')} de ${escapeHtml(s.mes || '—')} de 20${escapeHtml(s.anio || '—')} · ${escapeHtml(s.oficina || 'Sin oficina')} · Destino: ${escapeHtml(s.destino || '—')} · Total: $ ${fmtMoney(s.total || 0)}</span>
+      </div>
+      <div class="hist-actions">
+        <button class="row-icon-btn" onclick="verSolicitud('${s.id}')" title="Ver" aria-label="Ver">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function imprimirReporte(){
+  const statusEl = document.getElementById('repResumen');
+  const filtradas = await calcularReporte();
+  ultimoReporteFiltrado = filtradas;
+
+  if(filtradas.length === 0){
+    statusEl.style.display = 'block';
+    statusEl.style.color = 'var(--danger)';
+    statusEl.innerHTML = 'No hay resultados para imprimir con esos filtros.';
+    setTimeout(() => { statusEl.style.color = ''; generarReporte(); }, 2500);
+    return;
+  }
+
+  const totalGeneral = filtradas.reduce((sum, s) => sum + (s.total || 0), 0);
+  const fechaHoy = new Date().toLocaleDateString('es-AR');
+
+  const filas = filtradas.map(s => `
+    <tr>
+      <td>${escapeHtml(s.numero || '')}</td>
+      <td>${escapeHtml(s.dia || '')}/${escapeHtml(s.mes || '')}/20${escapeHtml(s.anio || '')}</td>
+      <td>${escapeHtml(s.oficina || '')}</td>
+      <td>${escapeHtml(s.destino || '')}</td>
+      <td>${escapeHtml(s.senor || '')}</td>
+      <td style="text-align:right;">$ ${fmtMoney(s.total || 0)}</td>
+    </tr>
+  `).join('');
+
+  const html = `
+  <div class="print-sheet">
+    <div class="informe-print">
+      <h1>Informe de Solicitudes de Compra</h1>
+      <p class="informe-meta">Municipalidad de Villa Ángela — Secretaría de Economía - Depto. de Compras</p>
+      <p class="informe-meta">Filtros aplicados: ${escapeHtml(descripcionFiltrosReporte())}</p>
+      <p class="informe-meta">Emitido el ${fechaHoy} · ${filtradas.length} solicitud(es)</p>
+      <table>
+        <thead>
+          <tr><th>N°</th><th>Fecha</th><th>Oficina</th><th>Destino</th><th>Proveedor</th><th style="text-align:right;">Total</th></tr>
+        </thead>
+        <tbody>${filas}</tbody>
+        <tfoot>
+          <tr><td colspan="5">Total general</td><td style="text-align:right;">$ ${fmtMoney(totalGeneral)}</td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>`;
+
+  const container = document.getElementById('printPages');
+  container.innerHTML = html;
+  setTimeout(() => window.print(), 60);
 }
 
 async function renderHistorial(){
