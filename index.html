@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Solicitud de Compra — Municipalidad de Villa Ángela</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -590,6 +591,94 @@
     background:rgba(255,255,255,0.7);
   }
 
+  /* ==== Responsive / Celulares ==== */
+  .table-scroll{
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  @media (max-width:959px){
+    .floating-actions{
+      flex-direction:row;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+    .floating-actions .btn{width:auto;flex:0 0 auto;}
+    .floating-actions .status-msg{width:100%;order:99;}
+  }
+
+  @media (max-width:640px){
+    .app{padding:16px 12px 48px;}
+    .app-header{
+      margin:0 -12px 18px;
+      padding:12px;
+      gap:10px;
+    }
+    .brand{gap:10px;}
+    .seal-img{width:42px;height:42px;}
+    .brand-text h1{font-size:15px;}
+    .brand-text p{font-size:10.5px;}
+
+    .tabs{
+      width:100%;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      flex-wrap:nowrap;
+      scrollbar-width:none;
+    }
+    .tabs::-webkit-scrollbar{display:none;}
+    .tab-btn{
+      padding:8px 13px;
+      font-size:12px;
+      white-space:nowrap;
+      flex:0 0 auto;
+    }
+
+    .card{padding:16px;margin-bottom:14px;}
+    .card h2{font-size:14.5px;}
+
+    .grid{grid-template-columns:1fr;gap:12px;}
+    .ver-grid{grid-template-columns:1fr 1fr;gap:12px 14px;}
+    .ajustes-resumen{grid-template-columns:repeat(2,1fr);}
+    .inicio-accesos{grid-template-columns:repeat(2,1fr);}
+
+    table.items{min-width:640px;}
+    table.ver-items{min-width:520px;}
+
+    .btn{padding:10px 16px;font-size:13.5px;}
+    .actions{gap:8px;}
+    .actions .btn{flex:1 1 auto;}
+
+    .hist-item{padding:12px;}
+    .hist-actions{width:100%;justify-content:flex-end;}
+
+    .modal-overlay{padding:0;align-items:flex-end;}
+    .modal-box{
+      max-width:100%;
+      width:100%;
+      max-height:92vh;
+      border-radius:14px 14px 0 0;
+    }
+    .modal-header{padding:16px 18px;}
+    .modal-body{padding:16px 18px 20px;}
+
+    .totals-amount{font-size:20px;}
+    .inicio-titulo{font-size:21px;}
+    .inicio-hero{padding:26px 16px;}
+
+    .field input, .field textarea,
+    table.items input, table.items textarea,
+    #ajLegajoForzado, #ajNumeroForzado{
+      font-size:16px; /* evita el zoom automático de iOS al enfocar */
+    }
+  }
+
+  @media (max-width:400px){
+    .ajustes-resumen{grid-template-columns:1fr 1fr;}
+    .inicio-accesos{grid-template-columns:1fr 1fr;}
+    .ver-grid{grid-template-columns:1fr;}
+  }
+
   @media print{
     body *{visibility:hidden;}
     .print-sheet-container, .print-sheet-container *{visibility:visible;}
@@ -932,6 +1021,7 @@
 
     <div class="card">
       <h2>Detalle de la compra</h2>
+      <div class="table-scroll">
       <table class="items" id="itemsTable">
         <thead>
           <tr>
@@ -945,6 +1035,7 @@
         </thead>
         <tbody id="itemsBody"></tbody>
       </table>
+      </div>
       <button class="add-row-btn btn-icon" onclick="addItemRow()" title="Agregar ítem" aria-label="Agregar ítem">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
       </button>
@@ -1703,12 +1794,14 @@ async function verSolicitud(id){
       <div class="ver-item"><label>Importe de Factura</label><span>${s.importeFactura ? '$ ' + escapeHtml(String(s.importeFactura)) : '<span class="vacio">—</span>'}</span></div>
     </div>
 
+    <div class="table-scroll">
     <table class="ver-items">
       <thead>
         <tr><th>Cant.</th><th>Detalle</th><th>Obs.</th><th style="text-align:right;">Precio unit.</th><th style="text-align:right;">Subtotal</th></tr>
       </thead>
       <tbody>${filasItems || '<tr><td colspan="5" style="color:var(--ink-soft);font-style:italic;">Sin ítems cargados</td></tr>'}</tbody>
     </table>
+    </div>
     <div class="ver-total"><span>Total:</span><b>$ ${fmtMoney(s.total || 0)}</b></div>
 
     <div class="ver-footer">
