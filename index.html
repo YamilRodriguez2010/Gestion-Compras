@@ -463,6 +463,27 @@
     transition:box-shadow .15s ease, border-color .15s ease;
   }
   .hist-item:hover{box-shadow:0 2px 8px rgba(20,30,40,0.06);border-color:var(--dashed-border);}
+  .hist-item-baja{
+    background:var(--surface-2);
+    opacity:0.65;
+  }
+  .hist-item-baja .hist-info b,
+  .hist-item-baja .hist-info span{
+    text-decoration:line-through;
+    color:var(--ink-soft);
+  }
+  .badge-baja{
+    display:inline-block;
+    background:var(--danger);
+    color:#fff;
+    font-size:9px;
+    padding:3px 7px;
+    border-radius:3px;
+    margin-left:6px;
+    font-weight:700;
+    text-decoration:none;
+    font-style:normal;
+  }
   .hist-info b{font-family:var(--font-display);color:var(--heading);font-size:15px;}
   .hist-info span{display:block;font-size:12px;color:var(--ink-soft);margin-top:3px;}
   .hist-actions{display:flex;gap:8px;}
@@ -700,24 +721,140 @@
 
   /* ---------- Informe impreso de Reportes ---------- */
   .informe-print{
-    padding:14mm 12mm;
-    font-family:Arial, Helvetica, sans-serif;
-    color:#111;
+    padding:16mm 14mm;
+    font-family:'Calibri','Cambria','Times New Roman',serif;
+    color:#1a1a1a;
+    line-height:1.4;
   }
-  .informe-print h1{
-    font-size:19px;margin:0 0 6px;font-weight:700;
+  .informe-header{
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+    margin-bottom:18px;
+    padding-bottom:14px;
+    border-bottom:3px solid #222;
   }
-  .informe-meta{font-size:11px;color:#444;margin:2px 0;}
-  .informe-print table{
-    width:100%;border-collapse:collapse;margin-top:16px;font-size:11.5px;
+  .informe-seal{
+    width:64px;
+    height:64px;
+    flex:0 0 auto;
+    object-fit:contain;
   }
-  .informe-print th, .informe-print td{
-    border:1px solid #999;padding:6px 8px;text-align:left;vertical-align:top;
+  .informe-title-box{flex:1;}
+  .informe-titulo{
+    font-size:17px;
+    font-weight:700;
+    margin:0;
+    letter-spacing:0.08em;
   }
-  .informe-print thead{display:table-header-group;}
-  .informe-print thead th{background:#e8e8e8;font-weight:700;}
-  .informe-print tfoot td{font-weight:700;background:#f2f2f2;}
-  .informe-print tr{break-inside:avoid;}
+  .informe-org{
+    font-size:11px;
+    margin:3px 0 0;
+    font-weight:600;
+    color:#333;
+  }
+  .informe-dep{
+    font-size:10.5px;
+    margin:2px 0 0;
+    color:#555;
+  }
+
+  .informe-meta-box{
+    background:#f9f9f9;
+    border-left:4px solid #222;
+    padding:12px 14px;
+    margin:16px 0;
+    font-size:10.5px;
+    line-height:1.6;
+  }
+  .informe-meta-row{display:flex;margin-bottom:6px;}
+  .informe-meta-row:last-child{margin-bottom:0;}
+  .informe-label{
+    font-weight:700;
+    min-width:140px;
+    color:#1a1a1a;
+  }
+  .informe-value{
+    flex:1;
+    color:#333;
+  }
+
+  .informe-table{
+    width:100%;
+    border-collapse:collapse;
+    margin:18px 0;
+    font-size:10px;
+  }
+  .informe-table thead{
+    display:table-header-group;
+    background:#e8e8e8;
+  }
+  .informe-table th{
+    font-weight:700;
+    border:1px solid #999;
+    padding:7px 6px;
+    text-align:left;
+    font-size:9.5px;
+    letter-spacing:0.03em;
+  }
+  .informe-table td{
+    border:1px solid #ccc;
+    padding:6px 6px;
+    vertical-align:top;
+  }
+  .informe-table tbody tr{break-inside:avoid;}
+  .informe-table tbody tr:nth-child(even){background:#fafafa;}
+  .num-col{width:90px;font-family:'Courier New',monospace;font-weight:600;}
+  .fecha-col{width:70px;}
+  .oficina-col{width:100px;}
+  .destino-col{width:110px;}
+  .proveedor-col{width:140px;}
+  .total-col{width:80px;text-align:right;font-weight:600;}
+
+  .informe-total-row{
+    background:#ddd;
+    font-weight:700;
+    border-top:2px solid #333;
+  }
+  .informe-total-row td{
+    border:1px solid #999;
+    padding:8px 6px;
+  }
+  .informe-total-label{text-align:right;padding-right:10px;}
+  .informe-total-amount{font-size:11px;font-family:'Courier New',monospace;}
+
+  .informe-footer{
+    margin-top:20px;
+    padding-top:14px;
+    border-top:1px solid #ddd;
+  }
+  .informe-note{
+    font-size:9px;
+    color:#555;
+    font-style:italic;
+    margin:0 0 18px;
+    line-height:1.5;
+  }
+  .informe-signatures{
+    display:flex;
+    gap:60px;
+    justify-content:flex-start;
+    margin-top:32px;
+  }
+  .informe-sig-box{
+    text-align:center;
+    font-size:9.5px;
+  }
+  .informe-sig-line{
+    width:120px;
+    height:1px;
+    background:#1a1a1a;
+    margin-bottom:6px;
+  }
+  .informe-sig-box p{
+    margin:4px 0;
+    font-weight:600;
+  }
 
   @media print{
     body *{visibility:hidden;}
@@ -1299,6 +1436,16 @@
     </div>
 
     <div class="card">
+      <h2>Administración</h2>
+      <p class="ajustes-desc">Opciones avanzadas para la gestión de solicitudes y protocolos.</p>
+      <label class="radio-opt" style="display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" id="ajHabilitarEliminar" onchange="guardarConfigAdmin()">
+        <span>Permitir eliminar solicitudes/protocolos</span>
+      </label>
+      <p class="ajustes-desc" style="font-size:10.5px;margin-top:6px;color:var(--danger);">⚠ Cuando está habilitado, permite eliminar permanentemente registros. Proceder con cuidado.</p>
+    </div>
+
+    <div class="card">
       <h2>Copia de seguridad</h2>
       <p class="ajustes-desc">Toda la información (solicitudes, proveedores, oficinas y protocolos) se guarda en este navegador. Exportá una copia periódicamente para no perderla si cambiás de equipo o navegador.</p>
       <div class="actions">
@@ -1823,8 +1970,32 @@ async function guardarSolicitud(){
   }
 }
 
+async function darDeBajaSolicitud(id){
+  const todas = await obtenerTodas();
+  const sol = todas.find(s => s.id === id);
+  if(!sol) return;
+  if(!confirm('¿Dar de baja esta solicitud? Seguirá en el historial pero marcada como inactiva.')) return;
+  sol.estadoBaja = true;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(todas));
+  renderHistorial();
+}
+
+async function restaurarSolicitud(id){
+  const todas = await obtenerTodas();
+  const sol = todas.find(s => s.id === id);
+  if(!sol) return;
+  sol.estadoBaja = false;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(todas));
+  renderHistorial();
+}
+
 async function eliminarSolicitud(id){
-  if(!confirm('¿Eliminar esta solicitud del historial? Esta acción no se puede deshacer.')) return;
+  const habilitarEliminar = localStorage.getItem('ajustes-habilitar-eliminar') === 'true';
+  if(!habilitarEliminar){
+    alert('La función de eliminar está deshabilitada. Habilitala desde Ajustes > Administración > "Permitir eliminar solicitudes/protocolos".');
+    return;
+  }
+  if(!confirm('⚠ ¿ELIMINAR permanentemente esta solicitud? Esta acción NO se puede deshacer.')) return;
   let todas = await obtenerTodas();
   todas = todas.filter(s => s.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(todas));
@@ -2041,35 +2212,81 @@ async function imprimirReporte(){
   }
 
   const totalGeneral = filtradas.reduce((sum, s) => sum + (s.total || 0), 0);
-  const fechaHoy = new Date().toLocaleDateString('es-AR');
+  const ahora = new Date();
+  const fechaHoy = ahora.toLocaleDateString('es-AR');
+  const horaHoy = ahora.toLocaleTimeString('es-AR', {hour:'2-digit',minute:'2-digit'});
 
-  const filas = filtradas.map(s => `
+  const filas = filtradas.map((s, idx) => `
     <tr>
-      <td>${escapeHtml(s.numero || '')}</td>
-      <td>${escapeHtml(s.dia || '')}/${escapeHtml(s.mes || '')}/20${escapeHtml(s.anio || '')}</td>
-      <td>${escapeHtml(s.oficina || '')}</td>
-      <td>${escapeHtml(s.destino || '')}</td>
-      <td>${escapeHtml(s.senor || '')}</td>
-      <td style="text-align:right;">$ ${fmtMoney(s.total || 0)}</td>
+      <td class="num-col">${escapeHtml(s.numero || '')}</td>
+      <td class="fecha-col">${escapeHtml(s.dia || '').padStart(2,'0')}/${MESES_ES[indiceMes(s.mes)||0]?.substring(0,3) || ''}/20${escapeHtml(s.anio || '')}</td>
+      <td class="oficina-col">${escapeHtml(s.oficina || '')}</td>
+      <td class="destino-col">${escapeHtml(s.destino || '')}</td>
+      <td class="proveedor-col">${escapeHtml(s.senor || '')}</td>
+      <td class="total-col">$ ${fmtMoney(s.total || 0)}</td>
     </tr>
   `).join('');
 
   const html = `
   <div class="print-sheet">
     <div class="informe-print">
-      <h1>Informe de Solicitudes de Compra</h1>
-      <p class="informe-meta">Municipalidad de Villa Ángela — Secretaría de Economía - Depto. de Compras</p>
-      <p class="informe-meta">Filtros aplicados: ${escapeHtml(descripcionFiltrosReporte())}</p>
-      <p class="informe-meta">Emitido el ${fechaHoy} · ${filtradas.length} solicitud(es)</p>
-      <table>
+      <div class="informe-header">
+        <img class="informe-seal" src="data:image/png;base64,${SEAL_IMG_B64}" alt="Escudo">
+        <div class="informe-title-box">
+          <h2 class="informe-titulo">INFORME DE SOLICITUDES DE COMPRA</h2>
+          <p class="informe-org">Municipalidad de Villa Ángela — Provincia del Chaco</p>
+          <p class="informe-dep">Secretaría de Economía — Departamento de Compras</p>
+        </div>
+      </div>
+
+      <div class="informe-meta-box">
+        <div class="informe-meta-row">
+          <span class="informe-label">Filtros aplicados:</span>
+          <span class="informe-value">${escapeHtml(descripcionFiltrosReporte())}</span>
+        </div>
+        <div class="informe-meta-row">
+          <span class="informe-label">Período cubierto:</span>
+          <span class="informe-value">${filtradas.length} solicitud(es) de compra registrada(s)</span>
+        </div>
+        <div class="informe-meta-row">
+          <span class="informe-label">Emitido:</span>
+          <span class="informe-value">${fechaHoy} a las ${horaHoy}</span>
+        </div>
+      </div>
+
+      <table class="informe-table">
         <thead>
-          <tr><th>N°</th><th>Fecha</th><th>Oficina</th><th>Destino</th><th>Proveedor</th><th style="text-align:right;">Total</th></tr>
+          <tr>
+            <th class="num-col">N° Solicitud</th>
+            <th class="fecha-col">Fecha</th>
+            <th class="oficina-col">Oficina Solicitante</th>
+            <th class="destino-col">Destino</th>
+            <th class="proveedor-col">Proveedor</th>
+            <th class="total-col">Total</th>
+          </tr>
         </thead>
         <tbody>${filas}</tbody>
         <tfoot>
-          <tr><td colspan="5">Total general</td><td style="text-align:right;">$ ${fmtMoney(totalGeneral)}</td></tr>
+          <tr class="informe-total-row">
+            <td colspan="5" class="informe-total-label">TOTAL GENERAL</td>
+            <td class="total-col informe-total-amount">$ ${fmtMoney(totalGeneral)}</td>
+          </tr>
         </tfoot>
       </table>
+
+      <div class="informe-footer">
+        <p class="informe-note">Este informe contiene un consolidado de las solicitudes de compra que cumplen con los filtros especificados. Para consultar los detalles de cada solicitud, se recomienda acceder directamente al sistema de gestión.</p>
+        <div class="informe-signatures">
+          <div class="informe-sig-box">
+            <div class="informe-sig-line"></div>
+            <p>Responsable de Compras</p>
+          </div>
+          <div class="informe-sig-box">
+            <div class="informe-sig-line"></div>
+            <p>Secretario de Economía</p>
+          </div>
+        </div>
+      </div>
     </div>
   </div>`;
 
@@ -2104,11 +2321,12 @@ async function renderHistorial(){
   }
 
   filtradas.sort((a,b) => (b.guardadoEn || '').localeCompare(a.guardadoEn || ''));
+  const habilitarEliminar = localStorage.getItem('ajustes-habilitar-eliminar') === 'true';
   list.innerHTML = filtradas.map(s => `
-    <div class="hist-item">
+    <div class="hist-item ${s.estadoBaja ? 'hist-item-baja' : ''}">
       <div class="hist-info">
-        <b>N° ${s.numero || '(sin número)'}</b> — ${s.senor || 'Sin proveedor'}
-        <span>${s.dia || '—'} de ${s.mes || '—'} de 20${s.anio || '—'} · Total: $ ${fmtMoney(s.total || 0)}</span>
+        <b>N° ${escapeHtml(s.numero || '(sin número)')}${s.estadoBaja ? ' <span class="badge-baja">Dada de baja</span>' : ''}</b> — ${escapeHtml(s.senor || 'Sin proveedor')}
+        <span>${escapeHtml(s.dia || '—')} de ${escapeHtml(s.mes || '—')} de 20${escapeHtml(s.anio || '—')} · Total: $ ${fmtMoney(s.total || 0)}</span>
       </div>
       <div class="hist-actions">
         <button class="row-icon-btn" onclick="verSolicitud('${s.id}')" title="Ver" aria-label="Ver">
@@ -2117,9 +2335,20 @@ async function renderHistorial(){
         <button class="row-icon-btn" onclick="cargarDesdeHistorial('${s.id}')" title="Editar" aria-label="Editar">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"></path></svg>
         </button>
+        ${s.estadoBaja ? `
+        <button class="row-icon-btn" onclick="restaurarSolicitud('${s.id}')" title="Restaurar" aria-label="Restaurar">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"></path></svg>
+        </button>
+        ` : `
+        <button class="row-icon-btn del" onclick="darDeBajaSolicitud('${s.id}')" title="Dar de baja" aria-label="Dar de baja">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+        </button>
+        `}
+        ${habilitarEliminar ? `
         <button class="row-icon-btn del" onclick="eliminarSolicitud('${s.id}')" title="Eliminar" aria-label="Eliminar">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
         </button>
+        ` : ''}
       </div>
     </div>
   `).join('');
@@ -2771,8 +3000,32 @@ async function guardarProtocolo(){
   }
 }
 
+async function darDeBajaProtocolo(id){
+  const todos = await obtenerProtocolos();
+  const p = todos.find(x => x.id === id);
+  if(!p) return;
+  if(!confirm('¿Dar de baja este protocolo? Seguirá en el historial pero marcado como inactivo.')) return;
+  p.estadoBaja = true;
+  localStorage.setItem(PROTOCOLOS_KEY, JSON.stringify(todos));
+  renderProtocolos();
+}
+
+async function restaurarProtocolo(id){
+  const todos = await obtenerProtocolos();
+  const p = todos.find(x => x.id === id);
+  if(!p) return;
+  p.estadoBaja = false;
+  localStorage.setItem(PROTOCOLOS_KEY, JSON.stringify(todos));
+  renderProtocolos();
+}
+
 async function eliminarProtocolo(id){
-  if(!confirm('¿Eliminar este protocolo del historial? Esta acción no se puede deshacer.')) return;
+  const habilitarEliminar = localStorage.getItem('ajustes-habilitar-eliminar') === 'true';
+  if(!habilitarEliminar){
+    alert('La función de eliminar está deshabilitada. Habilitala desde Ajustes > Administración > "Permitir eliminar solicitudes/protocolos".');
+    return;
+  }
+  if(!confirm('⚠ ¿ELIMINAR permanentemente este protocolo? Esta acción NO se puede deshacer.')) return;
   let todos = await obtenerProtocolos();
   todos = todos.filter(p => p.id !== id);
   localStorage.setItem(PROTOCOLOS_KEY, JSON.stringify(todos));
@@ -2845,11 +3098,12 @@ async function renderProtocolos(){
     return;
   }
   filtrados.sort((a,b) => (b.guardadoEn || '').localeCompare(a.guardadoEn || ''));
+  const habilitarEliminar = localStorage.getItem('ajustes-habilitar-eliminar') === 'true';
   cont.innerHTML = filtrados.map(p => `
-    <div class="hist-item">
+    <div class="hist-item ${p.estadoBaja ? 'hist-item-baja' : ''}">
       <div class="hist-info">
-        <b>N° ${p.numero || '(sin número)'}</b> — ${escapeHtml(p.jefeArea || 'Sin jefe de área')}
-        <span>${p.dia || '—'} de ${p.mes || '—'} de 20${p.anio || '—'}</span>
+        <b>N° ${escapeHtml(p.numero || '(sin número)')}${p.estadoBaja ? ' <span class="badge-baja">Dada de baja</span>' : ''}</b> — ${escapeHtml(p.jefeArea || 'Sin jefe de área')}
+        <span>${escapeHtml(p.dia || '—')} de ${escapeHtml(p.mes || '—')} de 20${escapeHtml(p.anio || '—')}</span>
       </div>
       <div class="hist-actions">
         <button class="row-icon-btn" onclick="verProtocolo('${p.id}')" title="Ver" aria-label="Ver">
@@ -2858,9 +3112,20 @@ async function renderProtocolos(){
         <button class="row-icon-btn" onclick="switchTab('protocolo'); setTimeout(()=>cargarDesdeHistorialProtocolo('${p.id}'), 0);" title="Editar" aria-label="Editar">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"></path></svg>
         </button>
+        ${p.estadoBaja ? `
+        <button class="row-icon-btn" onclick="restaurarProtocolo('${p.id}')" title="Restaurar" aria-label="Restaurar">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13"></path></svg>
+        </button>
+        ` : `
+        <button class="row-icon-btn del" onclick="darDeBajaProtocolo('${p.id}')" title="Dar de baja" aria-label="Dar de baja">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+        </button>
+        `}
+        ${habilitarEliminar ? `
         <button class="row-icon-btn del" onclick="eliminarProtocolo('${p.id}')" title="Eliminar" aria-label="Eliminar">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
         </button>
+        ` : ''}
       </div>
     </div>
   `).join('');
@@ -3230,11 +3495,25 @@ function cargarTemaGuardado(){
   marcarRadioTema(tema);
 }
 
+function guardarConfigAdmin(){
+  const habilitarEliminar = document.getElementById('ajHabilitarEliminar').checked;
+  try{
+    localStorage.setItem('ajustes-habilitar-eliminar', habilitarEliminar ? 'true' : 'false');
+  }catch(e){}
+}
+
+function cargarConfigAdmin(){
+  const habilitarEliminar = localStorage.getItem('ajustes-habilitar-eliminar') === 'true';
+  const chk = document.getElementById('ajHabilitarEliminar');
+  if(chk) chk.checked = habilitarEliminar;
+}
+
 // init
 nuevaSolicitud();
 nuevoProtocolo();
 cargarVistaInicio();
 cargarTemaGuardado();
+cargarConfigAdmin();
 </script>
 </body>
 </html>
