@@ -1252,6 +1252,11 @@
       <div class="field" style="margin-bottom:14px;">
         <input type="text" id="histBuscar" placeholder="Buscar por N°, proveedor, oficina o fecha..." oninput="renderHistorial()">
       </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;">
+        <button class="btn btn-ghost" id="btnFiltroBarajas" onclick="toggleFiltroBarasHistorial()" style="flex:0 0 auto;">
+          Mostrar dadas de baja
+        </button>
+      </div>
       <div class="hist-list" id="histList"></div>
     </div>
   </div>
@@ -1389,6 +1394,11 @@
       <h2>Protocolos guardados</h2>
       <div class="field" style="margin-bottom:12px;">
         <input type="text" id="ppBuscar" placeholder="Buscar por N° de legajo o jefe de área..." oninput="renderProtocolos()">
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;">
+        <button class="btn btn-ghost" id="btnFiltroProtocoloBarajas" onclick="toggleFiltroBarasProtocolos()" style="flex:0 0 auto;">
+          Mostrar dadas de baja
+        </button>
       </div>
       <div class="hist-list" id="listaProtocolos"></div>
     </div>
@@ -2114,6 +2124,49 @@ function limpiarFiltrosReporte(){
 }
 
 let ultimoReporteFiltrado = [];
+let mostrarBarasHistorialSolicitudes = false;
+let mostrarBarasHistorialProtocolos = false;
+
+
+function toggleFiltroBarasHistorial(){
+  mostrarBarasHistorialSolicitudes = !mostrarBarasHistorialSolicitudes;
+  actualizarBtnFiltroBarasHistorial();
+  renderHistorial();
+}
+
+function actualizarBtnFiltroBarasHistorial(){
+  const btn = document.getElementById('btnFiltroBarajas');
+  if(!btn) return;
+  if(mostrarBarasHistorialSolicitudes){
+    btn.textContent = 'Ocultasr dadas de baja';
+    btn.classList.add('btn-primary');
+    btn.classList.remove('btn-ghost');
+  } else {
+    btn.textContent = 'Mostrar dadas de baja';
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-ghost');
+  }
+}
+
+function toggleFiltroBarasProtocolos(){
+  mostrarBarasHistorialProtocolos = !mostrarBarasHistorialProtocolos;
+  actualizarBtnFiltroBarasProtocolos();
+  renderProtocolos();
+}
+
+function actualizarBtnFiltroBarasProtocolos(){
+  const btn = document.getElementById('btnFiltroProtocoloBarajas');
+  if(!btn) return;
+  if(mostrarBarasHistorialProtocolos){
+    btn.textContent = 'Ocultar dadas de baja';
+    btn.classList.add('btn-primary');
+    btn.classList.remove('btn-ghost');
+  } else {
+    btn.textContent = 'Mostrar dadas de baja';
+    btn.classList.remove('btn-primary');
+    btn.classList.add('btn-ghost');
+  }
+}
 
 function descripcionFiltrosReporte(){
   const partes = [];
@@ -2315,14 +2368,22 @@ async function renderHistorial(){
       fecha.toLowerCase().includes(q);
   }) : todas;
 
-  if(filtradas.length === 0){
-    list.innerHTML = '<div class="empty-state">Ninguna solicitud coincide con la búsqueda.</div>';
+  // Filtrar por estado de baja
+  const filtradas2 = mostrarBarasHistorialSolicitudes 
+    ? filtradas 
+    : filtradas.filter(s => !s.estadoBaja);
+
+  if(filtradas2.length === 0){
+    const msg = mostrarBarasHistorialSolicitudes
+      ? '<div class="empty-state">Ninguna solicitud coincide con la búsqueda.</div>'
+      : '<div class="empty-state">Ninguna solicitud activa coincide con la búsqueda. <button class="btn btn-ghost" style="margin-top:10px;font-size:12px;" onclick="toggleFiltroBarasHistorial()">Mostrar dadas de baja</button></div>';
+    list.innerHTML = msg;
     return;
   }
 
-  filtradas.sort((a,b) => (b.guardadoEn || '').localeCompare(a.guardadoEn || ''));
+  filtradas2.sort((a,b) => (b.guardadoEn || '').localeCompare(a.guardadoEn || ''));
   const habilitarEliminar = localStorage.getItem('ajustes-habilitar-eliminar') === 'true';
-  list.innerHTML = filtradas.map(s => `
+  list.innerHTML = filtradas2.map(s => `
     <div class="hist-item ${s.estadoBaja ? 'hist-item-baja' : ''}">
       <div class="hist-info">
         <b>N° ${escapeHtml(s.numero || '(sin número)')}${s.estadoBaja ? ' <span class="badge-baja">Dada de baja</span>' : ''}</b> — ${escapeHtml(s.senor || 'Sin proveedor')}
@@ -3093,13 +3154,22 @@ async function renderProtocolos(){
     cont.innerHTML = '<div class="empty-state">Todavía no guardaste ningún protocolo.</div>';
     return;
   }
-  if(filtrados.length === 0){
-    cont.innerHTML = '<div class="empty-state">Ningún protocolo coincide con la búsqueda.</div>';
+  
+  // Filtrar por estado de baja
+  const filtrados2 = mostrarBarasHistorialProtocolos 
+    ? filtrados 
+    : filtrados.filter(p => !p.estadoBaja);
+
+  if(filtrados2.length === 0){
+    const msg = mostrarBarasHistorialProtocolos
+      ? '<div class="empty-state">Ningún protocolo coincide con la búsqueda.</div>'
+      : '<div class="empty-state">Ningún protocolo activo coincide con la búsqueda. <button class="btn btn-ghost" style="margin-top:10px;font-size:12px;" onclick="toggleFiltroBarasProtocolos()">Mostrar dadas de baja</button></div>';
+    cont.innerHTML = msg;
     return;
   }
-  filtrados.sort((a,b) => (b.guardadoEn || '').localeCompare(a.guardadoEn || ''));
+  filtrados2.sort((a,b) => (b.guardadoEn || '').localeCompare(a.guardadoEn || ''));
   const habilitarEliminar = localStorage.getItem('ajustes-habilitar-eliminar') === 'true';
-  cont.innerHTML = filtrados.map(p => `
+  cont.innerHTML = filtrados2.map(p => `
     <div class="hist-item ${p.estadoBaja ? 'hist-item-baja' : ''}">
       <div class="hist-info">
         <b>N° ${escapeHtml(p.numero || '(sin número)')}${p.estadoBaja ? ' <span class="badge-baja">Dada de baja</span>' : ''}</b> — ${escapeHtml(p.jefeArea || 'Sin jefe de área')}
