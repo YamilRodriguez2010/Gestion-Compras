@@ -1033,6 +1033,42 @@
       }catch(e){}
     })();
   </script>
+
+  <!-- ===== Firebase (Paso 1: SDK + inicialización) ===== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore, collection, doc, getDocs, getDoc, setDoc,
+      addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // Config real del proyecto "compras-control"
+    const firebaseConfig = {
+      apiKey: "AIzaSyAkdia0Og4yLVzydOJ4ZhaDOoOdb_MXl6s",
+      authDomain: "compras-control.firebaseapp.com",
+      projectId: "compras-control",
+      storageBucket: "compras-control.firebasestorage.app",
+      messagingSenderId: "904460476504",
+      appId: "1:904460476504:web:62c4324c3878370616aa2d",
+      measurementId: "G-LXPTR3J5SP"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Exponemos db y las funciones de Firestore en window para poder
+    // usarlas desde el script principal (que no es type="module").
+    window.__firebase = {
+      db, collection, doc, getDocs, getDoc, setDoc,
+      addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy
+    };
+
+    // Avisamos cuando Firebase ya está listo, por si el script principal
+    // necesita esperarlo (evita condiciones de carrera al cargar la página).
+    window.dispatchEvent(new Event('firebase-ready'));
+
+    console.log('Firebase inicializado correctamente. Proyecto:', firebaseConfig.projectId);
+  </script>
 </head>
 <body>
 <div class="app">
