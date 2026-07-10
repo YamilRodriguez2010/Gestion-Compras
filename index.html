@@ -1038,7 +1038,8 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
-      getFirestore, collection, doc, getDocs, getDoc, setDoc,
+      initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+      collection, doc, getDocs, getDoc, setDoc,
       addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -1054,7 +1055,23 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+
+    // Firestore con caché local persistente (IndexedDB), habilitada para
+    // funcionar con varias pestañas abiertas a la vez (como en la prueba
+    // de concurrencia). Esto permite que la app siga funcionando sin
+    // conexión: se puede seguir viendo y cargando datos, y todo lo
+    // pendiente se sincroniza solo apenas vuelve la conexión a internet.
+    let db;
+    try{
+      db = initializeFirestore(app, {
+        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+      });
+    }catch(e){
+      // Si el navegador no soporta IndexedDB (modo incógnito muy restringido,
+      // navegador viejo, etc.), seguimos funcionando sin caché persistente.
+      console.warn('No se pudo activar la persistencia offline, se sigue sin ella:', e);
+      db = initializeFirestore(app, {});
+    }
 
     // Exponemos db y las funciones de Firestore en window para poder
     // usarlas desde el script principal (que no es type="module").
