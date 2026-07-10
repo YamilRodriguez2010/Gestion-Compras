@@ -1810,17 +1810,9 @@ async function siguienteNumero(anio){
 }
 
 async function obtenerFechaServidor(){
-  // Fecha desde un servicio horario externo y gratuito (hora de Argentina).
-  // Si no hay conexión o el servicio falla, se usa el reloj del dispositivo como respaldo.
-  try{
-    const resp = await fetch('https://worldtimeapi.org/api/timezone/America/Argentina/Buenos_Aires');
-    if(!resp.ok) throw new Error('respuesta no válida');
-    const info = await resp.json();
-    return new Date(info.datetime);
-  }catch(e){
-    console.warn('No se pudo obtener la fecha del servidor, se usa la fecha local:', e);
-    return new Date();
-  }
+  // Se usa directamente la fecha/hora del dispositivo.
+  // (Antes se consultaba worldtimeapi.org, pero fallaba seguido en GitHub Pages).
+  return new Date();
 }
 
 function sincronizarEtiquetas(){
@@ -1957,15 +1949,42 @@ function cargarDatos(sol){
   recalcular();
 }
 
-// ---- Persistencia (localStorage del navegador) ----
+// ---- Persistencia de Solicitudes (Firestore, con caché local write-through) ----
 const STORAGE_KEY = 'solicitudes-compra-data';
 
+// Caché en memoria de las solicitudes. Se mantiene sincronizada en tiempo real
+// por el listener de Firestore (onSnapshot) de más abajo. Mientras es null,
+// todavía no llegó la primera respuesta del servidor.
+let SOLICITUDES_CACHE = null;
+
+function iniciarSincronizacionSolicitudes(){
+  const fb = window.__firebase;
+  fb.onSnapshot(
+    fb.collection(fb.db, 'solicitudes'),
+    (snapshot) => {
+      SOLICITUDES_CACHE = snapshot.docs.map(d => d.data());
+      // Write-through: además de la caché en memoria, la espejamos en
+      // localStorage por si la app arranca sin conexión.
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(SOLICITUDES_CACHE)); }catch(e){}
+      if(typeof renderHistorial === 'function') renderHistorial();
+    },
+    (error) => {
+      console.error('Error de sincronización con Firestore (solicitudes):', error);
+    }
+  );
+}
+if(window.__firebase){ iniciarSincronizacionSolicitudes(); }
+else { window.addEventListener('firebase-ready', iniciarSincronizacionSolicitudes, { once:true }); }
+
 async function obtenerTodas(){
+  if(SOLICITUDES_CACHE !== null) return SOLICITUDES_CACHE;
+  // Todavía no llegó la primera respuesta de Firestore: usamos el último
+  // dato conocido en localStorage como respaldo temporal.
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
   }catch(e){
-    console.error('Error al leer el historial:', e);
+    console.error('Error al leer el historial local de respaldo:', e);
     return [];
   }
 }
@@ -1999,16 +2018,16 @@ async function guardarSolicitud(){
     }
     document.getElementById('fNroFactura').classList.remove('input-error');
 
-    let todas = await obtenerTodas();
-    const idx = todas.findIndex(s => s.id === data.id);
-    if(idx >= 0) todas[idx] = data; else todas.push(data);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(todas));
+    const fb = window.__firebase;
+    await fb.setDoc(fb.doc(fb.db, 'solicitudes', data.id), data);
+
     if(esNueva) localStorage.removeItem('ajustes-numero-forzado');
     currentId = data.id;
     statusEl.style.color = 'var(--ok)';
     statusEl.textContent = 'Guardado ✓ (N° ' + data.numero + ')';
     setTimeout(()=>{ statusEl.textContent=''; }, 2500);
-    renderHistorial();
+    // No hace falta llamar a renderHistorial() acá: el listener onSnapshot
+    // de arriba se dispara solo apenas Firestore confirma el guardado.
   }catch(e){
     statusEl.style.color = 'var(--danger)';
     statusEl.textContent = 'Error al guardar';
@@ -2021,18 +2040,16 @@ async function darDeBajaSolicitud(id){
   const sol = todas.find(s => s.id === id);
   if(!sol) return;
   if(!confirm('¿Dar de baja esta solicitud? Seguirá en el historial pero marcada como inactiva.')) return;
-  sol.estadoBaja = true;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(todas));
-  renderHistorial();
+  const fb = window.__firebase;
+  await fb.updateDoc(fb.doc(fb.db, 'solicitudes', id), { estadoBaja: true });
 }
 
 async function restaurarSolicitud(id){
   const todas = await obtenerTodas();
   const sol = todas.find(s => s.id === id);
   if(!sol) return;
-  sol.estadoBaja = false;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(todas));
-  renderHistorial();
+  const fb = window.__firebase;
+  await fb.updateDoc(fb.doc(fb.db, 'solicitudes', id), { estadoBaja: false });
 }
 
 async function eliminarSolicitud(id){
@@ -2042,10 +2059,8 @@ async function eliminarSolicitud(id){
     return;
   }
   if(!confirm('⚠ ¿ELIMINAR permanentemente esta solicitud? Esta acción NO se puede deshacer.')) return;
-  let todas = await obtenerTodas();
-  todas = todas.filter(s => s.id !== id);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(todas));
-  renderHistorial();
+  const fb = window.__firebase;
+  await fb.deleteDoc(fb.doc(fb.db, 'solicitudes', id));
 }
 
 async function cargarDesdeHistorial(id){
