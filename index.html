@@ -2738,12 +2738,34 @@ async function exportarProtocolosPDF(){
 // ---- Proveedores (directorio reutilizable) ----
 const PROVEEDORES_KEY = 'proveedores-compra-data';
 
+let PROVEEDORES_CACHE = null;
+
+function iniciarSincronizacionProveedores(){
+  const fb = window.__firebase;
+  fb.onSnapshot(
+    fb.collection(fb.db, 'proveedores'),
+    (snapshot) => {
+      PROVEEDORES_CACHE = snapshot.docs.map(d => d.data());
+      try{ localStorage.setItem(PROVEEDORES_KEY, JSON.stringify(PROVEEDORES_CACHE)); }catch(e){}
+      if(typeof renderProveedores === 'function' && document.getElementById('modalProveedor')?.classList.contains('open')){
+        renderProveedores();
+      }
+    },
+    (error) => {
+      console.error('Error de sincronización con Firestore (proveedores):', error);
+    }
+  );
+}
+if(window.__firebase){ iniciarSincronizacionProveedores(); }
+else { window.addEventListener('firebase-ready', iniciarSincronizacionProveedores, { once:true }); }
+
 async function obtenerProveedores(){
+  if(PROVEEDORES_CACHE !== null) return PROVEEDORES_CACHE;
   try{
     const raw = localStorage.getItem(PROVEEDORES_KEY);
     return raw ? JSON.parse(raw) : [];
   }catch(e){
-    console.error('Error al leer proveedores:', e);
+    console.error('Error al leer proveedores (respaldo local):', e);
     return [];
   }
 }
@@ -2780,9 +2802,8 @@ async function guardarProveedor(){
     localidad: document.getElementById('pvLocalidad').value.trim(),
     telefono: document.getElementById('pvTelefono').value.trim()
   };
-  const todos = await obtenerProveedores();
-  todos.push(proveedor);
-  localStorage.setItem(PROVEEDORES_KEY, JSON.stringify(todos));
+  const fb = window.__firebase;
+  await fb.setDoc(fb.doc(fb.db, 'proveedores', proveedor.id), proveedor);
 
   document.getElementById('pvNombre').value = '';
   document.getElementById('pvCuil').value = '';
@@ -2798,9 +2819,8 @@ async function guardarProveedor(){
 
 async function eliminarProveedor(id){
   if(!confirm('¿Eliminar este proveedor de la lista?')) return;
-  let todos = await obtenerProveedores();
-  todos = todos.filter(p => p.id !== id);
-  localStorage.setItem(PROVEEDORES_KEY, JSON.stringify(todos));
+  const fb = window.__firebase;
+  await fb.deleteDoc(fb.doc(fb.db, 'proveedores', id));
   renderProveedores();
 }
 
