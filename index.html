@@ -1024,6 +1024,44 @@
   .pp-footer-note{font-size:8.5px;margin-top:10px;line-height:1.35;}
   .pp-footer-note p{margin:0 0 5px;font-weight:700;}
   .pp-footer-note p.pp-plain{font-weight:400;}
+/* ===== Indicador de sincronización con Firestore ===== */
+.sync-status{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:12.5px;
+  color:var(--ink-soft);
+  padding:4px 10px;
+  border-radius:999px;
+  background:var(--paper-line);
+  white-space:nowrap;
+}
+.sync-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:var(--ink-soft);
+  flex-shrink:0;
+}
+.sync-status.syncing .sync-dot{
+  background:#e0a800;
+  animation:sync-pulse 1s ease-in-out infinite;
+}
+.sync-status.synced .sync-dot{
+  background:var(--ok);
+  animation:none;
+}
+.sync-status.error .sync-dot{
+  background:var(--danger);
+  animation:none;
+}
+@keyframes sync-pulse{
+  0%, 100%{ opacity:1; }
+  50%{ opacity:0.35; }
+}
+@media (max-width: 720px){
+  .sync-status{ font-size:11px; padding:3px 8px; }
+}
 </style>
   <script>
     (function(){
@@ -1103,6 +1141,10 @@
       <button class="tab-btn" id="tabFormBtn" onclick="switchTab('form')">Solicitudes</button>
       <button class="tab-btn" id="tabProtocoloBtn" onclick="switchTab('protocolo')">Protocolos</button>
       <button class="tab-btn" id="tabAjustesBtn" onclick="switchTab('ajustes')">Ajustes</button>
+    </div>
+    <div class="sync-status syncing" id="syncStatus" title="Estado de sincronización con la base de datos">
+      <span class="sync-dot"></span>
+      <span id="syncText">Sincronizando…</span>
     </div>
   </div>
 
@@ -1967,6 +2009,45 @@ function cargarDatos(sol){
 }
 
 // ---- Persistencia de Solicitudes (Firestore, con caché local write-through) ----
+// ---- Indicador global de sincronización con Firestore ----
+const SYNC_STATE = {
+  solicitudes: { status: 'pending', fromCache: false },
+  proveedores: { status: 'pending', fromCache: false },
+  oficinas:    { status: 'pending', fromCache: false },
+  protocolos:  { status: 'pending', fromCache: false }
+};
+
+function actualizarIndicadorSync(){
+  const el = document.getElementById('syncStatus');
+  const txt = document.getElementById('syncText');
+  if(!el || !txt) return;
+
+  const estados = Object.values(SYNC_STATE);
+
+  if(estados.some(s => s.status === 'error')){
+    el.className = 'sync-status error';
+    txt.textContent = 'Error de sincronización';
+    return;
+  }
+  if(estados.some(s => s.status === 'pending')){
+    el.className = 'sync-status syncing';
+    txt.textContent = 'Sincronizando…';
+    return;
+  }
+  // Las 4 colecciones ya respondieron al menos una vez.
+  const sinConexion = !navigator.onLine || estados.some(s => s.fromCache);
+  if(sinConexion){
+    el.className = 'sync-status syncing';
+    txt.textContent = 'Sin conexión (datos locales)';
+    return;
+  }
+  el.className = 'sync-status synced';
+  txt.textContent = 'Sincronizado';
+}
+
+window.addEventListener('online', actualizarIndicadorSync);
+window.addEventListener('offline', actualizarIndicadorSync);
+
 const STORAGE_KEY = 'solicitudes-compra-data';
 
 // Caché en memoria de las solicitudes. Se mantiene sincronizada en tiempo real
@@ -1983,10 +2064,14 @@ function iniciarSincronizacionSolicitudes(){
       // Write-through: además de la caché en memoria, la espejamos en
       // localStorage por si la app arranca sin conexión.
       try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(SOLICITUDES_CACHE)); }catch(e){}
+      SYNC_STATE.solicitudes = { status: 'ok', fromCache: snapshot.metadata.fromCache };
+      actualizarIndicadorSync();
       if(typeof renderHistorial === 'function') renderHistorial();
     },
     (error) => {
       console.error('Error de sincronización con Firestore (solicitudes):', error);
+      SYNC_STATE.solicitudes = { status: 'error', fromCache: false };
+      actualizarIndicadorSync();
     }
   );
 }
@@ -2418,6 +2503,10 @@ async function imprimirReporte(){
 
 async function renderHistorial(){
   const list = document.getElementById('histList');
+  if(SOLICITUDES_CACHE === null){
+    list.innerHTML = '<div class="empty-state">Sincronizando con la base de datos...</div>';
+    return;
+  }
   const todas = await obtenerTodas();
   const q = (document.getElementById('histBuscar').value || '').trim().toLowerCase();
 
@@ -2764,12 +2853,16 @@ function iniciarSincronizacionProveedores(){
     (snapshot) => {
       PROVEEDORES_CACHE = snapshot.docs.map(d => d.data());
       try{ localStorage.setItem(PROVEEDORES_KEY, JSON.stringify(PROVEEDORES_CACHE)); }catch(e){}
+      SYNC_STATE.proveedores = { status: 'ok', fromCache: snapshot.metadata.fromCache };
+      actualizarIndicadorSync();
       if(typeof renderProveedores === 'function' && document.getElementById('modalProveedor')?.classList.contains('open')){
         renderProveedores();
       }
     },
     (error) => {
       console.error('Error de sincronización con Firestore (proveedores):', error);
+      SYNC_STATE.proveedores = { status: 'error', fromCache: false };
+      actualizarIndicadorSync();
     }
   );
 }
@@ -2853,6 +2946,10 @@ async function usarProveedor(id){
 
 async function renderProveedores(){
   const cont = document.getElementById('listaProveedores');
+  if(PROVEEDORES_CACHE === null){
+    cont.innerHTML = '<div class="empty-state">Sincronizando con la base de datos...</div>';
+    return;
+  }
   const todos = await obtenerProveedores();
   const q = (document.getElementById('pvBuscar').value || '').trim().toLowerCase();
   const filtrados = q ? todos.filter(p =>
@@ -2901,12 +2998,16 @@ function iniciarSincronizacionOficinas(){
     (snapshot) => {
       OFICINAS_CACHE = snapshot.docs.map(d => d.data());
       try{ localStorage.setItem(OFICINAS_KEY, JSON.stringify(OFICINAS_CACHE)); }catch(e){}
+      SYNC_STATE.oficinas = { status: 'ok', fromCache: snapshot.metadata.fromCache };
+      actualizarIndicadorSync();
       if(typeof renderOficinas === 'function' && document.getElementById('modalOficina')?.classList.contains('open')){
         renderOficinas();
       }
     },
     (error) => {
       console.error('Error de sincronización con Firestore (oficinas):', error);
+      SYNC_STATE.oficinas = { status: 'error', fromCache: false };
+      actualizarIndicadorSync();
     }
   );
 }
@@ -2982,6 +3083,10 @@ async function usarOficina(id){
 
 async function renderOficinas(){
   const cont = document.getElementById('listaOficinas');
+  if(OFICINAS_CACHE === null){
+    cont.innerHTML = '<div class="empty-state">Sincronizando con la base de datos...</div>';
+    return;
+  }
   const todas = await obtenerOficinas();
   const q = (document.getElementById('ofBuscar').value || '').trim().toLowerCase();
   const filtradas = q ? todas.filter(o =>
@@ -3028,10 +3133,14 @@ function iniciarSincronizacionProtocolos(){
     (snapshot) => {
       PROTOCOLOS_CACHE = snapshot.docs.map(d => d.data());
       try{ localStorage.setItem(PROTOCOLOS_KEY, JSON.stringify(PROTOCOLOS_CACHE)); }catch(e){}
+      SYNC_STATE.protocolos = { status: 'ok', fromCache: snapshot.metadata.fromCache };
+      actualizarIndicadorSync();
       if(typeof renderProtocolos === 'function') renderProtocolos();
     },
     (error) => {
       console.error('Error de sincronización con Firestore (protocolos):', error);
+      SYNC_STATE.protocolos = { status: 'error', fromCache: false };
+      actualizarIndicadorSync();
     }
   );
 }
@@ -3264,6 +3373,10 @@ function cerrarModalVerProtocolo(){
 
 async function renderProtocolos(){
   const cont = document.getElementById('listaProtocolos');
+  if(PROTOCOLOS_CACHE === null){
+    cont.innerHTML = '<div class="empty-state">Sincronizando con la base de datos...</div>';
+    return;
+  }
   const todos = await obtenerProtocolos();
   const q = (document.getElementById('ppBuscar').value || '').trim().toLowerCase();
   const filtrados = q ? todos.filter(p =>
