@@ -1039,7 +1039,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import {
       getFirestore, collection, doc, getDocs, getDoc, setDoc,
-      addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy
+      addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     // Config real del proyecto "compras-control"
@@ -1060,7 +1060,7 @@
     // usarlas desde el script principal (que no es type="module").
     window.__firebase = {
       db, collection, doc, getDocs, getDoc, setDoc,
-      addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy
+      addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, writeBatch
     };
 
     // Avisamos cuando Firebase ya está listo, por si el script principal
@@ -2875,12 +2875,34 @@ async function renderProveedores(){
 // ---- Oficinas solicitantes (directorio reutilizable) ----
 const OFICINAS_KEY = 'oficinas-compra-data';
 
+let OFICINAS_CACHE = null;
+
+function iniciarSincronizacionOficinas(){
+  const fb = window.__firebase;
+  fb.onSnapshot(
+    fb.collection(fb.db, 'oficinas'),
+    (snapshot) => {
+      OFICINAS_CACHE = snapshot.docs.map(d => d.data());
+      try{ localStorage.setItem(OFICINAS_KEY, JSON.stringify(OFICINAS_CACHE)); }catch(e){}
+      if(typeof renderOficinas === 'function' && document.getElementById('modalOficina')?.classList.contains('open')){
+        renderOficinas();
+      }
+    },
+    (error) => {
+      console.error('Error de sincronización con Firestore (oficinas):', error);
+    }
+  );
+}
+if(window.__firebase){ iniciarSincronizacionOficinas(); }
+else { window.addEventListener('firebase-ready', iniciarSincronizacionOficinas, { once:true }); }
+
 async function obtenerOficinas(){
+  if(OFICINAS_CACHE !== null) return OFICINAS_CACHE;
   try{
     const raw = localStorage.getItem(OFICINAS_KEY);
     return raw ? JSON.parse(raw) : [];
   }catch(e){
-    console.error('Error al leer oficinas:', e);
+    console.error('Error al leer oficinas (respaldo local):', e);
     return [];
   }
 }
@@ -2913,9 +2935,8 @@ async function guardarOficina(){
     responsable: document.getElementById('ofResponsable').value.trim(),
     telefono: document.getElementById('ofTelefono').value.trim()
   };
-  const todas = await obtenerOficinas();
-  todas.push(oficina);
-  localStorage.setItem(OFICINAS_KEY, JSON.stringify(todas));
+  const fb = window.__firebase;
+  await fb.setDoc(fb.doc(fb.db, 'oficinas', oficina.id), oficina);
 
   document.getElementById('ofNombre').value = '';
   document.getElementById('ofResponsable').value = '';
@@ -2929,9 +2950,8 @@ async function guardarOficina(){
 
 async function eliminarOficina(id){
   if(!confirm('¿Eliminar esta oficina de la lista?')) return;
-  let todas = await obtenerOficinas();
-  todas = todas.filter(o => o.id !== id);
-  localStorage.setItem(OFICINAS_KEY, JSON.stringify(todas));
+  const fb = window.__firebase;
+  await fb.deleteDoc(fb.doc(fb.db, 'oficinas', id));
   renderOficinas();
 }
 
@@ -2982,12 +3002,32 @@ async function renderOficinas(){
 const PROTOCOLOS_KEY = 'protocolos-compra-data';
 let currentProtocoloId = null;
 
+let PROTOCOLOS_CACHE = null;
+
+function iniciarSincronizacionProtocolos(){
+  const fb = window.__firebase;
+  fb.onSnapshot(
+    fb.collection(fb.db, 'protocolos'),
+    (snapshot) => {
+      PROTOCOLOS_CACHE = snapshot.docs.map(d => d.data());
+      try{ localStorage.setItem(PROTOCOLOS_KEY, JSON.stringify(PROTOCOLOS_CACHE)); }catch(e){}
+      if(typeof renderProtocolos === 'function') renderProtocolos();
+    },
+    (error) => {
+      console.error('Error de sincronización con Firestore (protocolos):', error);
+    }
+  );
+}
+if(window.__firebase){ iniciarSincronizacionProtocolos(); }
+else { window.addEventListener('firebase-ready', iniciarSincronizacionProtocolos, { once:true }); }
+
 async function obtenerProtocolos(){
+  if(PROTOCOLOS_CACHE !== null) return PROTOCOLOS_CACHE;
   try{
     const raw = localStorage.getItem(PROTOCOLOS_KEY);
     return raw ? JSON.parse(raw) : [];
   }catch(e){
-    console.error('Error al leer protocolos:', e);
+    console.error('Error al leer protocolos (respaldo local):', e);
     return [];
   }
 }
@@ -3115,16 +3155,13 @@ async function guardarProtocolo(){
       sincronizarEtiquetasProtocolo();
     }
     const data = recolectarDatosProtocolo();
-    let todos = await obtenerProtocolos();
-    const idx = todos.findIndex(p => p.id === data.id);
-    if(idx >= 0) todos[idx] = data; else todos.push(data);
-    localStorage.setItem(PROTOCOLOS_KEY, JSON.stringify(todos));
+    const fb = window.__firebase;
+    await fb.setDoc(fb.doc(fb.db, 'protocolos', data.id), data);
     if(esNuevo) localStorage.removeItem('ajustes-legajo-forzado');
     currentProtocoloId = data.id;
     statusEl.style.color = 'var(--ok)';
     statusEl.textContent = 'Guardado ✓ (N° ' + data.numero + ')';
     setTimeout(()=>{ statusEl.textContent=''; }, 2500);
-    renderProtocolos();
   }catch(e){
     statusEl.style.color = 'var(--danger)';
     statusEl.textContent = 'Error al guardar';
@@ -3137,18 +3174,16 @@ async function darDeBajaProtocolo(id){
   const p = todos.find(x => x.id === id);
   if(!p) return;
   if(!confirm('¿Dar de baja este protocolo? Seguirá en el historial pero marcado como inactivo.')) return;
-  p.estadoBaja = true;
-  localStorage.setItem(PROTOCOLOS_KEY, JSON.stringify(todos));
-  renderProtocolos();
+  const fb = window.__firebase;
+  await fb.updateDoc(fb.doc(fb.db, 'protocolos', id), { estadoBaja: true });
 }
 
 async function restaurarProtocolo(id){
   const todos = await obtenerProtocolos();
   const p = todos.find(x => x.id === id);
   if(!p) return;
-  p.estadoBaja = false;
-  localStorage.setItem(PROTOCOLOS_KEY, JSON.stringify(todos));
-  renderProtocolos();
+  const fb = window.__firebase;
+  await fb.updateDoc(fb.doc(fb.db, 'protocolos', id), { estadoBaja: false });
 }
 
 async function eliminarProtocolo(id){
@@ -3158,10 +3193,8 @@ async function eliminarProtocolo(id){
     return;
   }
   if(!confirm('⚠ ¿ELIMINAR permanentemente este protocolo? Esta acción NO se puede deshacer.')) return;
-  let todos = await obtenerProtocolos();
-  todos = todos.filter(p => p.id !== id);
-  localStorage.setItem(PROTOCOLOS_KEY, JSON.stringify(todos));
-  renderProtocolos();
+  const fb = window.__firebase;
+  await fb.deleteDoc(fb.doc(fb.db, 'protocolos', id));
 }
 
 async function cargarDesdeHistorialProtocolo(id){
@@ -3397,15 +3430,15 @@ function quitarNumeracionForzada(){
   setTimeout(()=>{ statusEl.textContent=''; }, 3000);
 }
 
-function exportarDatos(){
+async function exportarDatos(){
   const statusEl = document.getElementById('ajustesBackupStatusMsg');
   try{
     const paquete = {
       exportadoEn: new Date().toISOString(),
-      solicitudes: JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'),
-      proveedores: JSON.parse(localStorage.getItem(PROVEEDORES_KEY) || '[]'),
-      oficinas: JSON.parse(localStorage.getItem(OFICINAS_KEY) || '[]'),
-      protocolos: JSON.parse(localStorage.getItem(PROTOCOLOS_KEY) || '[]')
+      solicitudes: await obtenerTodas(),
+      proveedores: await obtenerProveedores(),
+      oficinas: await obtenerOficinas(),
+      protocolos: await obtenerProtocolos()
     };
     const blob = new Blob([JSON.stringify(paquete, null, 2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
@@ -3427,22 +3460,49 @@ function exportarDatos(){
   }
 }
 
-function importarDatos(event){
+// Reemplaza por completo una colección de Firestore por un nuevo arreglo de
+// registros: borra todos los documentos existentes y escribe los nuevos,
+// en lotes de máximo 450 operaciones (el límite de Firestore es 500).
+async function reemplazarColeccionFirestore(nombreColeccion, registrosNuevos){
+  const fb = window.__firebase;
+  const snap = await fb.getDocs(fb.collection(fb.db, nombreColeccion));
+  const idsExistentes = snap.docs.map(d => d.id);
+
+  const operaciones = [];
+  idsExistentes.forEach(id => operaciones.push({tipo:'delete', id}));
+  (registrosNuevos || []).forEach(reg => { if(reg && reg.id) operaciones.push({tipo:'set', id: reg.id, data: reg}); });
+
+  for(let i = 0; i < operaciones.length; i += 450){
+    const lote = operaciones.slice(i, i + 450);
+    const batch = fb.writeBatch(fb.db);
+    lote.forEach(op => {
+      const ref = fb.doc(fb.db, nombreColeccion, op.id);
+      if(op.tipo === 'delete') batch.delete(ref);
+      else batch.set(ref, op.data);
+    });
+    await batch.commit();
+  }
+}
+
+async function importarDatos(event){
   const statusEl = document.getElementById('ajustesBackupStatusMsg');
   const file = event.target.files[0];
   if(!file) return;
   const reader = new FileReader();
-  reader.onload = function(e){
+  reader.onload = async function(e){
     try{
       const paquete = JSON.parse(e.target.result);
       if(!confirm('Esto va a REEMPLAZAR los datos actuales (solicitudes, proveedores, oficinas y protocolos) por los del archivo importado. ¿Continuar?')){
         event.target.value = '';
         return;
       }
-      if(paquete.solicitudes) localStorage.setItem(STORAGE_KEY, JSON.stringify(paquete.solicitudes));
-      if(paquete.proveedores) localStorage.setItem(PROVEEDORES_KEY, JSON.stringify(paquete.proveedores));
-      if(paquete.oficinas) localStorage.setItem(OFICINAS_KEY, JSON.stringify(paquete.oficinas));
-      if(paquete.protocolos) localStorage.setItem(PROTOCOLOS_KEY, JSON.stringify(paquete.protocolos));
+      statusEl.style.color = 'var(--ink-soft)';
+      statusEl.textContent = 'Importando a Firestore, un momento...';
+
+      if(paquete.solicitudes) await reemplazarColeccionFirestore('solicitudes', paquete.solicitudes);
+      if(paquete.proveedores) await reemplazarColeccionFirestore('proveedores', paquete.proveedores);
+      if(paquete.oficinas) await reemplazarColeccionFirestore('oficinas', paquete.oficinas);
+      if(paquete.protocolos) await reemplazarColeccionFirestore('protocolos', paquete.protocolos);
 
       statusEl.style.color = 'var(--ok)';
       statusEl.textContent = 'Copia importada ✓';
@@ -3475,7 +3535,7 @@ async function cargarVistaAjustes(){
   `;
 }
 
-function borrarTodosLosDatos(){
+async function borrarTodosLosDatos(){
   const statusEl = document.getElementById('ajustesBorrarStatusMsg');
   const conf = prompt('Esta acción borra TODAS las solicitudes, protocolos, proveedores y oficinas guardados, sin posibilidad de deshacer.\n\nEscribí BORRAR para confirmar:');
   if(conf !== 'BORRAR'){
@@ -3484,6 +3544,14 @@ function borrarTodosLosDatos(){
     setTimeout(()=>{ statusEl.textContent=''; }, 2000);
     return;
   }
+  statusEl.style.color = 'var(--ink-soft)';
+  statusEl.textContent = 'Borrando en Firestore, un momento...';
+  await Promise.all([
+    reemplazarColeccionFirestore('solicitudes', []),
+    reemplazarColeccionFirestore('proveedores', []),
+    reemplazarColeccionFirestore('oficinas', []),
+    reemplazarColeccionFirestore('protocolos', [])
+  ]);
   TODAS_LAS_CLAVES.forEach(k => localStorage.removeItem(k));
   localStorage.removeItem('ajustes-numero-forzado');
   localStorage.removeItem('ajustes-legajo-forzado');
