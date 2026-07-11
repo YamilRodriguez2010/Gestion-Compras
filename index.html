@@ -1207,7 +1207,7 @@
       <button class="tab-btn" id="tabProtocoloBtn" onclick="switchTab('protocolo')">Protocolos</button>
       <button class="tab-btn" id="tabAjustesBtn" onclick="switchTab('ajustes')">Ajustes</button>
     </div>
-    <div class="sync-status syncing" id="syncStatus" title="Estado de sincronización con la base de datos">
+    <div class="sync-status syncing" id="syncStatus" style="display:none;" title="Estado de sincronización con la base de datos">
       <span class="sync-dot"></span>
       <span id="syncText">Sincronizando…</span>
     </div>
@@ -1456,8 +1456,10 @@
           <h2>Jefe de Área</h2>
           <div class="grid">
             <div class="field">
-              <label>Jefe de Área (Sr/Sra)</label>
-              <input type="text" id="ppJefeArea" placeholder="Nombre del jefe de área">
+              <label>Jefe de Área (Sr/Sra) *</label>
+              <select id="ppJefeArea" onchange="this.classList.remove('input-error')">
+                <option value="">-- Seleccionar jefe de área --</option>
+              </select>
             </div>
           </div>
         </div>
@@ -1466,11 +1468,11 @@
           <h2>Solicitud</h2>
           <div class="grid">
             <div class="field" style="grid-column:1/-1;">
-              <label>Solicita</label>
-              <textarea id="ppSolicita" rows="4" placeholder="Detalle de lo que se solicita"></textarea>
+              <label>Solicita *</label>
+              <textarea id="ppSolicita" rows="4" placeholder="Detalle de lo que se solicita" oninput="this.classList.remove('input-error')"></textarea>
             </div>
             <div class="field" style="grid-column:1/-1;">
-              <label>Destinado (Detalle)</label>
+              <label>Destinado (Detalle) — opcional</label>
               <input type="text" id="ppDestinado" placeholder="Destino de lo solicitado">
             </div>
           </div>
@@ -1481,11 +1483,13 @@
           <div class="grid">
             <div class="field">
               <label>Lugar</label>
-              <input type="text" id="ppLugar" placeholder="Lugar donde se efectúa la compra">
+              <select id="ppLugar">
+                <option value="">-- Seleccionar proveedor --</option>
+              </select>
             </div>
             <div class="field">
               <label>Fecha de la compra</label>
-              <input type="text" id="ppFechaCompra" placeholder="DD/MM/AAAA">
+              <input type="date" id="ppFechaCompra">
             </div>
             <div class="field">
               <label>Por $</label>
@@ -2124,10 +2128,20 @@ const SYNC_STATE = {
   protocolos:  { status: 'pending', fromCache: false }
 };
 
+function actualizarVisibilidadSyncStatus(){
+  const el = document.getElementById('syncStatus');
+  if(!el) return;
+  const tabAjustes = document.getElementById('tabAjustes');
+  const enAjustes = !!(tabAjustes && tabAjustes.style.display !== 'none');
+  const esAdmin = !!(SESION_ACTUAL && SESION_ACTUAL.rol === 'admin');
+  el.style.display = (enAjustes && esAdmin) ? 'flex' : 'none';
+}
+
 function actualizarIndicadorSync(){
   const el = document.getElementById('syncStatus');
   const txt = document.getElementById('syncText');
   if(!el || !txt) return;
+  actualizarVisibilidadSyncStatus();
 
   const estados = Object.values(SYNC_STATE);
 
@@ -2293,6 +2307,7 @@ function aplicarPermisosSegunRol(){
   if(!esAdmin && tabAjustes && tabAjustes.style.display !== 'none'){
     switchTab('inicio');
   }
+  actualizarVisibilidadSyncStatus();
 }
 
 const STORAGE_KEY = 'solicitudes-compra-data';
@@ -2876,6 +2891,7 @@ function switchTab(tab){
   if(tab === 'hist') renderHistorial();
   if(tab === 'histProtocolo') renderProtocolos();
   if(tab === 'ajustes') cargarVistaAjustes();
+  actualizarVisibilidadSyncStatus();
 }
 
 function escapeHtml(str){
@@ -3148,6 +3164,7 @@ function iniciarSincronizacionProveedores(){
         renderProveedores();
       }
       if(typeof renderSelectProveedores === 'function') renderSelectProveedores();
+      if(typeof renderSelectLugarCompra === 'function') renderSelectLugarCompra();
     },
     (error) => {
       console.error('Error de sincronización con Firestore (proveedores):', error);
@@ -3402,6 +3419,7 @@ function iniciarSincronizacionOficinas(){
         renderOficinas();
       }
       if(typeof renderSelectOficinas === 'function') renderSelectOficinas();
+      if(typeof renderSelectJefesArea === 'function') renderSelectJefesArea();
     },
     (error) => {
       console.error('Error de sincronización con Firestore (oficinas):', error);
@@ -3649,6 +3667,63 @@ function sincronizarEtiquetasProtocolo(){
     (dia && mes && anio) ? `${dia} de ${mes} de 20${anio}` : '—';
 }
 
+async function renderSelectJefesArea(){
+  const select = document.getElementById('ppJefeArea');
+  if(!select) return;
+  const valorActual = select.value;
+  const todas = await obtenerOficinas();
+  const nombres = [...new Set(todas.map(o => (o.responsable || '').trim()).filter(Boolean))].sort((a,b) => a.localeCompare(b));
+  let opciones = '<option value="">-- Seleccionar jefe de área --</option>';
+  nombres.forEach(n => { opciones += `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`; });
+  if(valorActual && !nombres.includes(valorActual)){
+    opciones += `<option value="${escapeHtml(valorActual)}">${escapeHtml(valorActual)} (no está en la lista)</option>`;
+  }
+  select.innerHTML = opciones;
+  select.value = valorActual;
+}
+
+async function renderSelectLugarCompra(){
+  const select = document.getElementById('ppLugar');
+  if(!select) return;
+  const valorActual = select.value;
+  const todos = await obtenerProveedores();
+  const nombres = todos.map(p => p.nombre).filter(Boolean).sort((a,b) => a.localeCompare(b));
+  let opciones = '<option value="">-- Seleccionar proveedor --</option>';
+  nombres.forEach(n => { opciones += `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`; });
+  if(valorActual && !nombres.includes(valorActual)){
+    opciones += `<option value="${escapeHtml(valorActual)}">${escapeHtml(valorActual)} (no está en la lista)</option>`;
+  }
+  select.innerHTML = opciones;
+  select.value = valorActual;
+}
+
+// Convierte una fecha en formato ISO (input type="date", ej. "2026-07-11") a
+// DD/MM/AAAA para mostrarla en la vista y en el protocolo impreso. Si el dato
+// es de un protocolo viejo guardado como texto libre, se muestra tal cual.
+function formatearFechaDDMMAAAA(valor){
+  if(!valor) return '';
+  const partes = String(valor).split('-');
+  if(partes.length !== 3) return valor;
+  const [anio, mes, dia] = partes;
+  return `${dia}/${mes}/${anio}`;
+}
+
+function validarCamposObligatoriosProtocolo(){
+  const jefeEl = document.getElementById('ppJefeArea');
+  const solicitaEl = document.getElementById('ppSolicita');
+  let faltante = null;
+
+  const jefeVacio = !jefeEl.value || !jefeEl.value.trim();
+  jefeEl.classList.toggle('input-error', jefeVacio);
+  if(jefeVacio) faltante = 'Jefe de Área';
+
+  const solicitaVacio = !solicitaEl.value || !solicitaEl.value.trim();
+  solicitaEl.classList.toggle('input-error', solicitaVacio);
+  if(solicitaVacio && !faltante) faltante = 'Solicita';
+
+  return faltante;
+}
+
 async function nuevoProtocolo(){
   currentProtocoloId = null;
   document.getElementById('ppJefeArea').value = '';
@@ -3665,6 +3740,8 @@ async function nuevoProtocolo(){
   document.getElementById('ppTelefono').value = '';
   document.getElementById('ppDescripcion').value = '';
   document.getElementById('ppParaDestino').value = '';
+  document.getElementById('ppJefeArea').classList.remove('input-error');
+  document.getElementById('ppSolicita').classList.remove('input-error');
 
   const hoy = await obtenerFechaServidor();
   const anioCompleto = hoy.getFullYear();
@@ -3732,6 +3809,12 @@ function cargarDatosProtocolo(p){
 async function guardarProtocolo(){
   const statusEl = document.getElementById('protocoloStatusMsg');
   try{
+    const faltante = validarCamposObligatoriosProtocolo();
+    if(faltante){
+      statusEl.style.color = 'var(--danger)';
+      statusEl.textContent = `Completá el campo obligatorio: ${faltante}`;
+      return;
+    }
     const esNuevo = !currentProtocoloId;
     if(esNuevo){
       const hoy = await obtenerFechaServidor();
@@ -3811,7 +3894,7 @@ async function verProtocolo(id){
       <div class="ver-item"><label>Solicita</label><span>${val(p.solicita)}</span></div>
       <div class="ver-item"><label>Destinado a</label><span>${val(p.destinado)}</span></div>
       <div class="ver-item"><label>Lugar</label><span>${val(p.lugar)}</span></div>
-      <div class="ver-item"><label>Fecha de la compra</label><span>${val(p.fechaCompra)}</span></div>
+      <div class="ver-item"><label>Fecha de la compra</label><span>${val(formatearFechaDDMMAAAA(p.fechaCompra))}</span></div>
       <div class="ver-item"><label>Importe</label><span>${p.importe ? '$ ' + fmtMoney(parseFloat(p.importe) || 0) : '<span class="vacio">—</span>'}</span></div>
       <div class="ver-item"><label>Entregar a</label><span>${val(p.entregarA)}</span></div>
       <div class="ver-item"><label>Nombre</label><span>${val(p.nombre)}</span></div>
@@ -3948,7 +4031,7 @@ function construirProtocoloHTML(data){
       </div>
 
       <div class="pp-row" style="margin-top:16px;"><span>EFECTUAR la compra en (lugar)</span><span class="pp-line grow">${escapeHtml(data.lugar||'')}</span></div>
-      <div class="pp-row"><span>en la fecha</span><span class="pp-line">${escapeHtml(data.fechaCompra||'')}</span><span>Por $</span><span class="pp-line grow">${data.importe ? fmtMoney(parseFloat(data.importe)) : ''}</span></div>
+      <div class="pp-row"><span>en la fecha</span><span class="pp-line">${escapeHtml(formatearFechaDDMMAAAA(data.fechaCompra))}</span><span>Por $</span><span class="pp-line grow">${data.importe ? fmtMoney(parseFloat(data.importe)) : ''}</span></div>
 
       <div class="pp-box">Si no se cumplen estos requisitos, las facturas no serán reconocidas por el municipio y no se efectuara el pago correspondiente.</div>
 
