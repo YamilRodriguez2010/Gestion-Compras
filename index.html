@@ -537,6 +537,38 @@
     border-color:var(--navy);
   }
 
+  /* ---------- Login ---------- */
+  #loginOverlay{
+    position:fixed;inset:0;
+    background:var(--surface-2, #eef2f4);
+    display:flex;align-items:center;justify-content:center;
+    z-index:3000;
+    padding:20px;
+  }
+  #appRoot{display:none;}
+  .login-box{
+    background:var(--surface);
+    border-radius:14px;
+    max-width:380px;width:100%;
+    padding:30px 28px;
+    box-shadow:0 20px 60px rgba(14,38,53,0.25);
+  }
+  .login-box h2{margin:0 0 6px;font-family:var(--font-display);font-style:italic;font-weight:600;font-size:20px;color:var(--heading);}
+  .login-box p.login-sub{margin:0 0 20px;font-size:12.5px;color:var(--ink-soft);}
+  .login-box .field{margin-bottom:14px;}
+  .login-box .btn{width:100%;justify-content:center;margin-top:6px;}
+  .login-error{color:var(--danger);font-size:12.5px;margin-top:10px;min-height:16px;}
+  .login-userchip{
+    display:flex;align-items:center;gap:8px;
+    font-size:12.5px;color:var(--ink-soft);
+    padding:6px 10px;border:1px solid var(--paper-line);border-radius:20px;
+  }
+  .login-userchip b{color:var(--ink);}
+  .login-userchip button{
+    background:none;border:none;color:var(--ink-soft);cursor:pointer;
+    text-decoration:underline;font-size:12px;padding:0;
+  }
+
   /* ---------- Modales (proveedores / oficinas) ---------- */
   .modal-overlay{
     display:none;
@@ -1126,6 +1158,38 @@
   </script>
 </head>
 <body>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginOverlay">
+  <div class="login-box">
+    <div id="loginCargando">
+      <h2>Cargando…</h2>
+      <p class="login-sub">Conectando con la base de datos.</p>
+    </div>
+
+    <div id="loginFormPrimerAdmin" style="display:none;">
+      <h2>Bienvenido</h2>
+      <p class="login-sub">Todavía no hay usuarios cargados. Creá la cuenta de administrador inicial para empezar.</p>
+      <div class="field"><label>Nombre y apellido</label><input type="text" id="paNombre" placeholder="Ej: Juan Pérez"></div>
+      <div class="field"><label>Usuario</label><input type="text" id="paUsuario" placeholder="Ej: jperez" autocomplete="username"></div>
+      <div class="field"><label>Contraseña</label><input type="password" id="paPass" autocomplete="new-password"></div>
+      <div class="field"><label>Repetir contraseña</label><input type="password" id="paPass2" autocomplete="new-password"></div>
+      <button class="btn btn-primary" onclick="crearPrimerAdmin()">Crear administrador</button>
+      <div class="login-error" id="loginPrimerAdminError"></div>
+    </div>
+
+    <div id="loginFormNormal" style="display:none;">
+      <h2>Iniciar sesión</h2>
+      <p class="login-sub">Municipalidad de Villa Ángela — Depto. de Compras</p>
+      <div class="field"><label>Usuario</label><input type="text" id="loginUsuario" placeholder="Tu usuario" autocomplete="username"></div>
+      <div class="field"><label>Contraseña</label><input type="password" id="loginPass" placeholder="Tu contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter') iniciarSesion()"></div>
+      <button class="btn btn-primary" onclick="iniciarSesion()">Ingresar</button>
+      <div class="login-error" id="loginError"></div>
+    </div>
+  </div>
+</div>
+
+<div id="appRoot">
 <div class="app">
 
   <div class="app-header">
@@ -1145,6 +1209,10 @@
     <div class="sync-status syncing" id="syncStatus" title="Estado de sincronización con la base de datos">
       <span class="sync-dot"></span>
       <span id="syncText">Sincronizando…</span>
+    </div>
+    <div class="login-userchip" id="userChip" style="display:none;">
+      <span>👤 <b id="userChipNombre"></b></span>
+      <button onclick="cerrarSesion()">Salir</button>
     </div>
   </div>
 
@@ -1575,6 +1643,29 @@
         <button class="btn btn-ghost" style="color:var(--danger);border-color:var(--danger-line);" onclick="borrarTodosLosDatos()">Borrar todos los datos</button>
         <span class="status-msg" id="ajustesBorrarStatusMsg"></span>
       </div>
+    </div>
+
+    <div class="card">
+      <h2>Gestión de usuarios</h2>
+      <p class="ajustes-desc">Administrá quién puede entrar a la app y quién tiene acceso a esta sección de Ajustes.</p>
+      <div class="grid">
+        <div class="field"><label>Nombre y apellido</label><input type="text" id="usNombre"></div>
+        <div class="field"><label>Usuario</label><input type="text" id="usUsuario"></div>
+        <div class="field"><label>Contraseña</label><input type="password" id="usPass" placeholder="Vacío = no cambiar (al editar)"></div>
+        <div class="field">
+          <label>Rol</label>
+          <select id="usRol">
+            <option value="usuario">Usuario</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="guardarUsuarioApp()">Guardar usuario</button>
+        <button class="btn btn-ghost" onclick="limpiarFormUsuarioApp()">Cancelar edición</button>
+        <span class="status-msg" id="usuariosStatusMsg"></span>
+      </div>
+      <div id="listaUsuariosApp" style="margin-top:16px;"></div>
     </div>
   </div>
 
@@ -2047,6 +2138,146 @@ function actualizarIndicadorSync(){
 
 window.addEventListener('online', actualizarIndicadorSync);
 window.addEventListener('offline', actualizarIndicadorSync);
+
+// ---- Login y control de acceso (Solicitudes/Proveedores/Oficinas/Protocolos
+// siguen siendo de uso libre entre empleados; solo Ajustes queda restringido
+// a usuarios con rol "admin"). Es un control a nivel de uso de la app, no
+// una capa de seguridad real: las reglas de Firestore siguen siendo
+// públicas, como se definió en el Paso 2. ----
+const USUARIOS_KEY = 'usuarios-app-data';
+let USUARIOS_CACHE = null;
+let SESION_ACTUAL = null;
+let PRIMERA_CARGA_USUARIOS = true;
+
+async function hashPassword(texto){
+  const datos = new TextEncoder().encode(texto);
+  const buffer = await crypto.subtle.digest('SHA-256', datos);
+  return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function iniciarSincronizacionUsuarios(){
+  const fb = window.__firebase;
+  fb.onSnapshot(
+    fb.collection(fb.db, 'usuarios_app'),
+    (snapshot) => {
+      USUARIOS_CACHE = snapshot.docs.map(d => d.data());
+      try{ localStorage.setItem(USUARIOS_KEY, JSON.stringify(USUARIOS_CACHE)); }catch(e){}
+      if(PRIMERA_CARGA_USUARIOS){
+        PRIMERA_CARGA_USUARIOS = false;
+        resolverEstadoLogin();
+      }
+    },
+    (error) => {
+      console.error('Error de sincronización con Firestore (usuarios_app):', error);
+    }
+  );
+}
+if(window.__firebase){ iniciarSincronizacionUsuarios(); }
+else { window.addEventListener('firebase-ready', iniciarSincronizacionUsuarios, { once:true }); }
+
+async function obtenerUsuariosApp(){
+  if(USUARIOS_CACHE !== null) return USUARIOS_CACHE;
+  try{
+    const raw = localStorage.getItem(USUARIOS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    return [];
+  }
+}
+
+function resolverEstadoLogin(){
+  document.getElementById('loginCargando').style.display = 'none';
+  if(USUARIOS_CACHE.length === 0){
+    document.getElementById('loginFormPrimerAdmin').style.display = 'block';
+    return;
+  }
+  try{
+    const guardada = JSON.parse(localStorage.getItem('sesion-activa') || 'null');
+    if(guardada){
+      const existe = USUARIOS_CACHE.find(u => u.id === guardada.id);
+      if(existe){
+        SESION_ACTUAL = { id: existe.id, nombre: existe.nombre, usuario: existe.usuario, rol: existe.rol };
+        mostrarApp();
+        return;
+      }
+    }
+  }catch(e){}
+  document.getElementById('loginFormNormal').style.display = 'block';
+}
+
+async function crearPrimerAdmin(){
+  const errEl = document.getElementById('loginPrimerAdminError');
+  errEl.textContent = '';
+  const nombre = document.getElementById('paNombre').value.trim();
+  const usuario = document.getElementById('paUsuario').value.trim().toLowerCase();
+  const pass = document.getElementById('paPass').value;
+  const pass2 = document.getElementById('paPass2').value;
+  if(!nombre || !usuario || !pass){ errEl.textContent = 'Completá todos los campos.'; return; }
+  if(pass.length < 4){ errEl.textContent = 'La contraseña debe tener al menos 4 caracteres.'; return; }
+  if(pass !== pass2){ errEl.textContent = 'Las contraseñas no coinciden.'; return; }
+  try{
+    const passHash = await hashPassword(pass);
+    const admin = { id: 'usr_' + Date.now(), nombre, usuario, passHash, rol: 'admin' };
+    const fb = window.__firebase;
+    await fb.setDoc(fb.doc(fb.db, 'usuarios_app', admin.id), admin);
+    iniciarSesionConDatos(admin);
+  }catch(e){
+    errEl.textContent = 'Error al crear el usuario. Probá de nuevo.';
+    console.error(e);
+  }
+}
+
+async function iniciarSesion(){
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  const usuario = document.getElementById('loginUsuario').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPass').value;
+  if(!usuario || !pass){ errEl.textContent = 'Ingresá usuario y contraseña.'; return; }
+  const passHash = await hashPassword(pass);
+  const todos = await obtenerUsuariosApp();
+  const encontrado = todos.find(u => u.usuario === usuario && u.passHash === passHash);
+  if(!encontrado){ errEl.textContent = 'Usuario o contraseña incorrectos.'; return; }
+  iniciarSesionConDatos(encontrado);
+}
+
+function iniciarSesionConDatos(usuario){
+  SESION_ACTUAL = { id: usuario.id, nombre: usuario.nombre, usuario: usuario.usuario, rol: usuario.rol };
+  try{ localStorage.setItem('sesion-activa', JSON.stringify(SESION_ACTUAL)); }catch(e){}
+  mostrarApp();
+}
+
+function cerrarSesion(){
+  SESION_ACTUAL = null;
+  try{ localStorage.removeItem('sesion-activa'); }catch(e){}
+  const lu = document.getElementById('loginUsuario'); if(lu) lu.value = '';
+  const lp = document.getElementById('loginPass'); if(lp) lp.value = '';
+  document.getElementById('appRoot').style.display = 'none';
+  document.getElementById('loginOverlay').style.display = 'flex';
+  document.getElementById('loginCargando').style.display = 'none';
+  document.getElementById('loginFormPrimerAdmin').style.display = 'none';
+  document.getElementById('loginFormNormal').style.display = 'block';
+}
+
+function mostrarApp(){
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('appRoot').style.display = 'block';
+  const chip = document.getElementById('userChip');
+  if(chip){
+    chip.style.display = 'flex';
+    document.getElementById('userChipNombre').textContent = SESION_ACTUAL.nombre + (SESION_ACTUAL.rol === 'admin' ? ' (admin)' : '');
+  }
+  aplicarPermisosSegunRol();
+}
+
+function aplicarPermisosSegunRol(){
+  const esAdmin = !!(SESION_ACTUAL && SESION_ACTUAL.rol === 'admin');
+  const btnAjustes = document.getElementById('tabAjustesBtn');
+  if(btnAjustes) btnAjustes.style.display = esAdmin ? '' : 'none';
+  const tabAjustes = document.getElementById('tabAjustes');
+  if(!esAdmin && tabAjustes && tabAjustes.style.display !== 'none'){
+    switchTab('inicio');
+  }
+}
 
 const STORAGE_KEY = 'solicitudes-compra-data';
 
@@ -2573,6 +2804,10 @@ async function renderHistorial(){
 }
 
 function switchTab(tab){
+  if(tab === 'ajustes' && !(SESION_ACTUAL && SESION_ACTUAL.rol === 'admin')){
+    alert('No tenés permisos para acceder a Ajustes.');
+    return;
+  }
   document.getElementById('tabInicio').style.display = tab === 'inicio' ? 'block' : 'none';
   document.getElementById('tabForm').style.display = tab === 'form' ? 'block' : 'none';
   document.getElementById('tabHist').style.display = tab === 'hist' ? 'block' : 'none';
@@ -3663,6 +3898,127 @@ async function cargarVistaAjustes(){
     <div class="ajustes-stat"><b>${proveedores.length}</b><span>Proveedores</span></div>
     <div class="ajustes-stat"><b>${oficinas.length}</b><span>Oficinas</span></div>
   `;
+  renderUsuariosApp();
+}
+
+let currentUsuarioAppId = null;
+
+async function guardarUsuarioApp(){
+  const statusEl = document.getElementById('usuariosStatusMsg');
+  const nombre = document.getElementById('usNombre').value.trim();
+  const usuario = document.getElementById('usUsuario').value.trim().toLowerCase();
+  const pass = document.getElementById('usPass').value;
+  const rol = document.getElementById('usRol').value;
+  if(!nombre || !usuario){
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'Nombre y usuario son obligatorios';
+    return;
+  }
+  const todos = await obtenerUsuariosApp();
+  const duplicado = todos.find(u => u.usuario === usuario && u.id !== currentUsuarioAppId);
+  if(duplicado){
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'Ya existe un usuario con ese nombre de usuario';
+    return;
+  }
+  let id = currentUsuarioAppId;
+  let passHash;
+  if(id){
+    const existente = todos.find(u => u.id === id);
+    passHash = pass ? await hashPassword(pass) : existente.passHash;
+    if(existente.rol === 'admin' && rol !== 'admin'){
+      const otrosAdmins = todos.filter(u => u.rol === 'admin' && u.id !== id);
+      if(otrosAdmins.length === 0){
+        statusEl.style.color = 'var(--danger)';
+        statusEl.textContent = 'No podés quitar el rol admin al único administrador';
+        return;
+      }
+    }
+  } else {
+    if(!pass){
+      statusEl.style.color = 'var(--danger)';
+      statusEl.textContent = 'La contraseña es obligatoria para un usuario nuevo';
+      return;
+    }
+    id = 'usr_' + Date.now();
+    passHash = await hashPassword(pass);
+  }
+  const registro = { id, nombre, usuario, passHash, rol };
+  const fb = window.__firebase;
+  await fb.setDoc(fb.doc(fb.db, 'usuarios_app', id), registro);
+  if(SESION_ACTUAL && SESION_ACTUAL.id === id){
+    SESION_ACTUAL = { id, nombre, usuario, rol };
+    try{ localStorage.setItem('sesion-activa', JSON.stringify(SESION_ACTUAL)); }catch(e){}
+    document.getElementById('userChipNombre').textContent = nombre + (rol === 'admin' ? ' (admin)' : '');
+    aplicarPermisosSegunRol();
+  }
+  limpiarFormUsuarioApp();
+  statusEl.style.color = 'var(--ok)';
+  statusEl.textContent = 'Usuario guardado ✓';
+  setTimeout(()=>{ statusEl.textContent=''; }, 2000);
+  renderUsuariosApp();
+}
+
+function limpiarFormUsuarioApp(){
+  currentUsuarioAppId = null;
+  document.getElementById('usNombre').value = '';
+  document.getElementById('usUsuario').value = '';
+  document.getElementById('usPass').value = '';
+  document.getElementById('usRol').value = 'usuario';
+}
+
+async function editarUsuarioApp(id){
+  const todos = await obtenerUsuariosApp();
+  const u = todos.find(x => x.id === id);
+  if(!u) return;
+  currentUsuarioAppId = id;
+  document.getElementById('usNombre').value = u.nombre;
+  document.getElementById('usUsuario').value = u.usuario;
+  document.getElementById('usPass').value = '';
+  document.getElementById('usRol').value = u.rol;
+}
+
+async function eliminarUsuarioApp(id){
+  const todos = await obtenerUsuariosApp();
+  const u = todos.find(x => x.id === id);
+  if(!u) return;
+  if(u.rol === 'admin'){
+    const otrosAdmins = todos.filter(x => x.rol === 'admin' && x.id !== id);
+    if(otrosAdmins.length === 0){
+      alert('No podés eliminar al único administrador.');
+      return;
+    }
+  }
+  if(!confirm(`¿Eliminar el usuario "${u.nombre}"?`)) return;
+  const fb = window.__firebase;
+  await fb.deleteDoc(fb.doc(fb.db, 'usuarios_app', id));
+  if(SESION_ACTUAL && SESION_ACTUAL.id === id){
+    cerrarSesion();
+    return;
+  }
+  renderUsuariosApp();
+}
+
+async function renderUsuariosApp(){
+  const cont = document.getElementById('listaUsuariosApp');
+  if(!cont) return;
+  const todos = await obtenerUsuariosApp();
+  if(todos.length === 0){
+    cont.innerHTML = '<div class="empty-state">No hay usuarios cargados.</div>';
+    return;
+  }
+  cont.innerHTML = todos.map(u => `
+    <div class="prov-item">
+      <div>
+        <b>${escapeHtml(u.nombre)}</b> — ${escapeHtml(u.usuario)}
+        <span style="color:var(--ink-soft); font-size:11px;">(${u.rol === 'admin' ? 'Administrador' : 'Usuario'})</span>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <button class="row-icon-btn" onclick="editarUsuarioApp('${u.id}')" title="Editar">✎</button>
+        <button class="row-icon-btn del" onclick="eliminarUsuarioApp('${u.id}')" title="Eliminar">🗑</button>
+      </div>
+    </div>
+  `).join('');
 }
 
 async function borrarTodosLosDatos(){
