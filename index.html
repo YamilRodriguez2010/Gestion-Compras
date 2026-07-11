@@ -541,7 +541,9 @@
   /* ---------- Login ---------- */
   #loginOverlay{
     position:fixed;inset:0;
-    background:var(--surface-2, #eef2f4);
+    background:
+      radial-gradient(circle at 25% 15%, rgba(255,255,255,0.06) 0%, transparent 45%),
+      linear-gradient(160deg, var(--navy) 0%, var(--navy-deep) 100%);
     display:flex;align-items:center;justify-content:center;
     z-index:3000;
     padding:20px;
@@ -549,16 +551,73 @@
   #appRoot{display:none;}
   .login-box{
     background:var(--surface);
-    border-radius:14px;
-    max-width:380px;width:100%;
-    padding:30px 28px;
-    box-shadow:0 20px 60px rgba(14,38,53,0.25);
+    border-radius:16px;
+    max-width:400px;width:100%;
+    padding:34px 32px 28px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.35), 0 2px 0 rgba(255,255,255,0.04) inset;
+    position:relative;
+    overflow:hidden;
+    animation:loginFadeIn .4s cubic-bezier(.2,.7,.3,1);
   }
-  .login-box h2{margin:0 0 6px;font-family:var(--font-display);font-style:italic;font-weight:600;font-size:20px;color:var(--heading);}
-  .login-box p.login-sub{margin:0 0 20px;font-size:12.5px;color:var(--ink-soft);}
+  .login-box::before{
+    content:'';
+    position:absolute;top:0;left:0;right:0;height:5px;
+    background:linear-gradient(90deg, var(--gold-deep), var(--gold) 50%, var(--gold-deep));
+  }
+  @keyframes loginFadeIn{
+    from{opacity:0; transform:translateY(10px) scale(.97);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
+  .login-brand{
+    text-align:center;
+    margin-bottom:22px;
+    padding-bottom:20px;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .login-seal{
+    width:68px;height:68px;
+    margin:0 auto 12px;
+    filter:drop-shadow(0 3px 6px rgba(0,0,0,0.15));
+  }
+  .login-brand h1{
+    font-family:var(--font-display);
+    font-style:italic;
+    font-weight:600;
+    font-size:19px;
+    color:var(--heading);
+    margin:0;
+    line-height:1.3;
+  }
+  .login-brand p{
+    margin:5px 0 0;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    letter-spacing:.04em;
+    text-transform:uppercase;
+  }
+  .login-box h2{margin:0 0 6px;font-family:var(--font-display);font-style:italic;font-weight:600;font-size:18px;color:var(--heading);text-align:center;}
+  .login-box p.login-sub{margin:0 0 20px;font-size:12.5px;color:var(--ink-soft);text-align:center;}
   .login-box .field{margin-bottom:14px;}
-  .login-box .btn{width:100%;justify-content:center;margin-top:6px;}
-  .login-error{color:var(--danger);font-size:12.5px;margin-top:10px;min-height:16px;}
+  .login-box .field label{font-size:12px;font-weight:600;letter-spacing:.01em;}
+  .login-box .btn{width:100%;justify-content:center;margin-top:8px;font-weight:600;letter-spacing:.01em;}
+  .login-error{
+    color:var(--danger);font-size:12.5px;margin-top:12px;min-height:16px;text-align:center;
+    display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .login-error:not(:empty){
+    background:var(--error-bg, rgba(161,61,46,0.08));
+    border:1px solid var(--danger-line);
+    border-radius:8px;
+    padding:8px 10px;
+  }
+  .login-spinner{
+    width:26px;height:26px;margin:0 auto 14px;
+    border:3px solid var(--paper-line);
+    border-top-color:var(--gold);
+    border-radius:50%;
+    animation:loginSpin .8s linear infinite;
+  }
+  @keyframes loginSpin{ to{ transform:rotate(360deg); } }
   .login-userchip{
     display:flex;align-items:center;gap:8px;
     font-size:12.5px;color:var(--ink-soft);
@@ -568,6 +627,9 @@
   .login-userchip button{
     background:none;border:none;color:var(--ink-soft);cursor:pointer;
     text-decoration:underline;font-size:12px;padding:0;
+  }
+  @media (max-width:480px){
+    .login-box{padding:28px 22px 24px;border-radius:14px;}
   }
 
   /* ---------- Modales (proveedores / oficinas) ---------- */
@@ -1163,9 +1225,15 @@
 <!-- ===== LOGIN ===== -->
 <div id="loginOverlay">
   <div class="login-box">
+    <div class="login-brand">
+      <img class="seal-img login-seal" alt="Escudo Municipalidad de Villa Ángela">
+      <h1>Municipalidad de Villa Ángela</h1>
+      <p>Departamento de Compras</p>
+    </div>
+
     <div id="loginCargando">
-      <h2>Cargando…</h2>
-      <p class="login-sub">Conectando con la base de datos.</p>
+      <div class="login-spinner"></div>
+      <p class="login-sub">Conectando con la base de datos…</p>
     </div>
 
     <div id="loginFormPrimerAdmin" style="display:none;">
@@ -1181,7 +1249,7 @@
 
     <div id="loginFormNormal" style="display:none;">
       <h2>Iniciar sesión</h2>
-      <p class="login-sub">Municipalidad de Villa Ángela — Depto. de Compras</p>
+      <p class="login-sub">Ingresá tu usuario y contraseña para continuar</p>
       <div class="field"><label>Usuario</label><input type="text" id="loginUsuario" placeholder="Tu usuario" autocomplete="username"></div>
       <div class="field"><label>Contraseña</label><input type="password" id="loginPass" placeholder="Tu contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter') iniciarSesion()"></div>
       <button class="btn btn-primary" onclick="iniciarSesion()">Ingresar</button>
