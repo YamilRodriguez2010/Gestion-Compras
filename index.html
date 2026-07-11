@@ -1734,12 +1734,12 @@
     <div class="modal-body">
       <div class="grid">
         <div class="field">
-          <label>Oficina Solicitante</label>
-          <input type="text" id="ofNombre" placeholder="Nombre de la oficina">
+          <label>Oficina Solicitante *</label>
+          <input type="text" id="ofNombre" placeholder="Nombre de la oficina" oninput="this.classList.remove('input-error')">
         </div>
         <div class="field">
-          <label>Responsable</label>
-          <input type="text" id="ofResponsable" placeholder="Nombre del responsable">
+          <label>Responsable *</label>
+          <input type="text" id="ofResponsable" placeholder="Nombre del responsable" oninput="this.classList.remove('input-error')">
         </div>
         <div class="field">
           <label>Teléfono (opcional)</label>
@@ -1750,6 +1750,7 @@
         <button class="btn btn-primary btn-icon" onclick="guardarOficina()" title="Guardar oficina" aria-label="Guardar oficina">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
         </button>
+        <button class="btn btn-ghost" onclick="cancelarEdicionOficina()" title="Cancelar edición">Cancelar edición</button>
         <span class="status-msg" id="oficinaStatusMsg"></span>
       </div>
 
@@ -1810,15 +1811,21 @@
           <label>Proveedor</label>
           <select id="repProveedor"><option value="">Todos</option></select>
         </div>
-        <div class="field">
-          <label>Destino</label>
-          <input type="text" id="repDestino" placeholder="Buscar por destino..." oninput="generarReporte()">
-        </div>
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label>Destino</label>
+        <input type="text" id="repDestino" placeholder="Buscar por destino..." oninput="generarReporte()">
       </div>
       <div class="actions" style="margin-top:14px;">
-        <button class="btn btn-primary" onclick="generarReporte()">Generar reporte</button>
-        <button class="btn btn-print" onclick="imprimirReporte()">Imprimir informe</button>
-        <button class="btn btn-ghost" onclick="limpiarFiltrosReporte()">Limpiar filtros</button>
+        <button class="btn btn-primary btn-icon" onclick="generarReporte()" title="Generar reporte" aria-label="Generar reporte">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </button>
+        <button class="btn btn-print btn-icon" onclick="imprimirReporte()" title="Imprimir informe" aria-label="Imprimir informe">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        </button>
+        <button class="btn btn-ghost btn-icon" onclick="limpiarFiltrosReporte()" title="Limpiar filtros" aria-label="Limpiar filtros">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+        </button>
       </div>
       <div id="repResumen" class="rep-resumen" style="display:none;"></div>
       <div id="repResultados" class="hist-list"></div>
@@ -3417,10 +3424,15 @@ async function obtenerOficinas(){
   }
 }
 
+let currentOficinaId = null;
+
 function abrirModalOficina(){
+  currentOficinaId = null;
   document.getElementById('ofNombre').value = '';
   document.getElementById('ofResponsable').value = '';
   document.getElementById('ofTelefono').value = '';
+  document.getElementById('ofNombre').classList.remove('input-error');
+  document.getElementById('ofResponsable').classList.remove('input-error');
   document.getElementById('oficinaStatusMsg').textContent = '';
   document.getElementById('ofBuscar').value = '';
   document.getElementById('modalOficina').classList.add('open');
@@ -3431,29 +3443,69 @@ function cerrarModalOficina(){
   document.getElementById('modalOficina').classList.remove('open');
 }
 
+function cancelarEdicionOficina(){
+  currentOficinaId = null;
+  document.getElementById('ofNombre').value = '';
+  document.getElementById('ofResponsable').value = '';
+  document.getElementById('ofTelefono').value = '';
+  document.getElementById('ofNombre').classList.remove('input-error');
+  document.getElementById('ofResponsable').classList.remove('input-error');
+  document.getElementById('oficinaStatusMsg').textContent = '';
+}
+
+async function editarOficina(id){
+  const todas = await obtenerOficinas();
+  const o = todas.find(x => x.id === id);
+  if(!o) return;
+  currentOficinaId = id;
+  document.getElementById('ofNombre').value = o.nombre || '';
+  document.getElementById('ofResponsable').value = o.responsable || '';
+  document.getElementById('ofTelefono').value = o.telefono || '';
+  document.getElementById('ofNombre').classList.remove('input-error');
+  document.getElementById('ofResponsable').classList.remove('input-error');
+  const statusEl = document.getElementById('oficinaStatusMsg');
+  statusEl.style.color = 'var(--ink-soft)';
+  statusEl.textContent = 'Editando: ' + o.nombre;
+}
+
 async function guardarOficina(){
   const statusEl = document.getElementById('oficinaStatusMsg');
-  const nombre = document.getElementById('ofNombre').value.trim();
+  const nombreEl = document.getElementById('ofNombre');
+  const responsableEl = document.getElementById('ofResponsable');
+  const nombre = nombreEl.value.trim();
+  const responsable = responsableEl.value.trim();
+
+  nombreEl.classList.toggle('input-error', !nombre);
+  responsableEl.classList.toggle('input-error', !responsable);
+
   if(!nombre){
     statusEl.style.color = 'var(--danger)';
     statusEl.textContent = 'La oficina es obligatoria';
     return;
   }
+  if(!responsable){
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'El responsable es obligatorio';
+    return;
+  }
+
+  const esEdicion = !!currentOficinaId;
   const oficina = {
-    id: 'ofi_' + Date.now(),
+    id: currentOficinaId || ('ofi_' + Date.now()),
     nombre: nombre,
-    responsable: document.getElementById('ofResponsable').value.trim(),
+    responsable: responsable,
     telefono: document.getElementById('ofTelefono').value.trim()
   };
   const fb = window.__firebase;
   await fb.setDoc(fb.doc(fb.db, 'oficinas', oficina.id), oficina);
 
+  currentOficinaId = null;
   document.getElementById('ofNombre').value = '';
   document.getElementById('ofResponsable').value = '';
   document.getElementById('ofTelefono').value = '';
 
   statusEl.style.color = 'var(--ok)';
-  statusEl.textContent = 'Oficina guardada ✓';
+  statusEl.textContent = esEdicion ? 'Oficina actualizada ✓' : 'Oficina guardada ✓';
   setTimeout(()=>{ statusEl.textContent=''; }, 2000);
   renderOficinas();
 }
@@ -3462,6 +3514,7 @@ async function eliminarOficina(id){
   if(!confirm('¿Eliminar esta oficina de la lista?')) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'oficinas', id));
+  if(currentOficinaId === id) cancelarEdicionOficina();
   renderOficinas();
 }
 
@@ -3520,6 +3573,9 @@ async function renderOficinas(){
       <div class="prov-actions">
         <button class="row-icon-btn" onclick="usarOficina('${o.id}')" title="Usar" aria-label="Usar">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </button>
+        <button class="row-icon-btn" onclick="editarOficina('${o.id}')" title="Editar" aria-label="Editar">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"></path></svg>
         </button>
         <button class="row-icon-btn del" onclick="eliminarOficina('${o.id}')" title="Eliminar" aria-label="Eliminar">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
