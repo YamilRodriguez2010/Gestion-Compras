@@ -239,6 +239,12 @@
     border-color:var(--danger);
     background:var(--error-bg);
   }
+  #itemsBody tr.fila-incompleta td{
+    background:var(--error-bg);
+  }
+  #itemsBody tr.fila-incompleta td:first-child{
+    border-left:3px solid var(--danger);
+  }
 
   /* ---------- Reportes ---------- */
   .rep-filtros{
@@ -753,16 +759,18 @@
   }
   .dup-label{
     position:absolute;
-    top:6px;
-    right:6px;
-    font-size:8.5px;
-    letter-spacing:0.12em;
-    color:#8a8a8a;
-    border:1px solid #8a8a8a;
-    padding:2px 8px;
+    top:10px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:12px;
+    letter-spacing:0.14em;
+    color:#555;
+    border:1.5px solid #555;
+    padding:4px 14px;
     text-transform:uppercase;
     font-family:Arial,sans-serif;
-    background:rgba(255,255,255,0.7);
+    font-weight:700;
+    background:rgba(255,255,255,0.85);
   }
 
   /* ==== Responsive / Celulares ==== */
@@ -1008,7 +1016,7 @@
       break-after:auto;
       page-break-after:auto;
     }
-    @page{size:216mm 330mm; margin:14mm;}
+    @page{size:216mm 330mm; margin:10mm;}
     *{
       -webkit-print-color-adjust:exact !important;
       print-color-adjust:exact !important;
@@ -1020,9 +1028,9 @@
     position:relative;
     font-family:'Times New Roman',Georgia,serif;
     color:#111;
-    font-size:12px;
+    font-size:14.5px;
     padding:4px 6px;
-    line-height:1.35;
+    line-height:1.4;
   }
 
   /* header — grid: col 1 = municipio (logo arriba, datos debajo), col 2 = etiqueta/N°/fecha.
@@ -1034,32 +1042,32 @@
     grid-template-rows:auto auto auto auto;
     column-gap:26px;
     align-items:start;
-    margin-bottom:10px;
+    margin-bottom:14px;
   }
-  .hg-seal{grid-column:1;grid-row:1;justify-self:center;width:74px;height:auto;margin-bottom:4px;}
-  .hg-name{grid-column:1;grid-row:2;justify-self:center;text-align:center;margin:0;font-size:16px;font-style:italic;font-weight:700;white-space:nowrap;}
-  .hg-addr{grid-column:1;grid-row:3;justify-self:center;text-align:center;margin:2px 0 0;font-size:9.5px;}
-  .hg-prov{grid-column:1;grid-row:4;justify-self:center;text-align:center;margin:1px 0 0;font-size:9.5px;font-variant:small-caps;letter-spacing:0.03em;}
+  .hg-seal{grid-column:1;grid-row:1;justify-self:center;width:78px;height:auto;margin-bottom:4px;}
+  .hg-name{grid-column:1;grid-row:2;justify-self:center;text-align:center;margin:0;font-size:17px;font-style:italic;font-weight:700;white-space:nowrap;}
+  .hg-addr{grid-column:1;grid-row:3;justify-self:center;text-align:center;margin:3px 0 0;font-size:10px;}
+  .hg-prov{grid-column:1;grid-row:4;justify-self:center;text-align:center;margin:2px 0 0;font-size:10px;font-variant:small-caps;letter-spacing:0.03em;}
 
   .hg-title-box{
     grid-column:2;grid-row:1;justify-self:end;align-self:center;
     background:#2b2b2b;
     color:#fff;
-    padding:6px 18px;
+    padding:8px 22px;
     font-weight:700;
     letter-spacing:0.08em;
-    font-size:12.5px;
+    font-size:15.5px;
     -webkit-print-color-adjust:exact;
     print-color-adjust:exact;
   }
-  .hg-num{grid-column:2;grid-row:1;justify-self:end;align-self:end;font-size:14px;font-weight:700;text-align:right;}
-  .hg-date{grid-column:2;grid-row:3;justify-self:end;align-self:start;text-align:right;font-size:11px;white-space:nowrap;}
+  .hg-num{grid-column:2;grid-row:1;justify-self:end;align-self:end;font-size:17px;font-weight:700;text-align:right;}
+  .hg-date{grid-column:2;grid-row:3;justify-self:end;align-self:start;text-align:right;font-size:13.5px;white-space:nowrap;}
 
   /* generic filled-line fields */
   .fill{
     border-bottom:1px dotted #333;
     display:inline-block;
-    min-height:13px;
+    min-height:16px;
     padding:0 4px;
   }
   .fill.wide{min-width:70px;}
@@ -1081,51 +1089,51 @@
     padding:0;
   }
 
-  .sheet-row{margin:10px 0;font-size:11.5px;}
+  .sheet-row{margin:12px 0;font-size:14px;}
   .lbl{font-weight:400;}
 
-  .sheet-lead{font-size:11.5px;margin:14px 0 10px;line-height:1.5;}
+  .sheet-lead{font-size:14px;margin:16px 0 12px;line-height:1.5;}
 
-  .sheet-mid{display:flex;gap:18px;margin:12px 0 14px;align-items:stretch;}
-  .sheet-mid-left{flex:1.3;display:flex;flex-direction:column;justify-content:flex-start;gap:6px;}
+  .sheet-mid{display:flex;gap:18px;margin:14px 0 16px;align-items:stretch;}
+  .sheet-mid-left{flex:1.3;display:flex;flex-direction:column;justify-content:flex-start;gap:7px;}
   .sheet-mid-left .lbl{font-weight:700;text-transform:uppercase;}
   .sheet-mid-right{flex:1;}
-  .box{border:1.5px solid #333;padding:10px 12px;font-size:10.5px;}
-  .box h4{margin:0 0 10px;font-size:11px;text-align:center;font-weight:700;letter-spacing:0.02em;}
-  .box p.center{text-align:center;margin:4px 0;}
-  .box p.small{font-size:9.5px;}
+  .box{border:1.5px solid #333;padding:12px 14px;font-size:13px;}
+  .box h4{margin:0 0 12px;font-size:13.5px;text-align:center;font-weight:700;letter-spacing:0.02em;}
+  .box p.center{text-align:center;margin:5px 0;}
+  .box p.small{font-size:11.5px;}
 
-  table.sheet-table{width:100%;border-collapse:collapse;margin-top:4px;font-size:10.5px;}
-  table.sheet-table th, table.sheet-table td{border:1px solid #333;padding:5px 6px;}
-  table.sheet-table th{background:#e2e2e2;font-size:9px;text-transform:uppercase;text-align:center;letter-spacing:0.02em;}
-  table.sheet-table td{height:20px;}
+  table.sheet-table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px;}
+  table.sheet-table th, table.sheet-table td{border:1px solid #333;padding:6px 7px;}
+  table.sheet-table th{background:#e2e2e2;font-size:11px;text-transform:uppercase;text-align:center;letter-spacing:0.02em;}
+  table.sheet-table td{height:24px;}
 
   .sheet-son-row{
     display:flex;justify-content:space-between;align-items:center;
-    margin-top:0;padding:8px 2px 4px;font-size:11.5px;
+    margin-top:0;padding:10px 2px 6px;font-size:14px;
   }
   .son-left{
     flex:1;
     border-top:1px solid #333;
     border-bottom:1px solid #333;
-    padding:6px 0;
+    padding:7px 0;
     margin-right:10px;
   }
-  .son-box{border:1.5px solid #333;padding:5px 14px;font-weight:700;font-size:13px;white-space:nowrap;}
+  .son-box{border:1.5px solid #333;padding:7px 16px;font-weight:700;font-size:16px;white-space:nowrap;}
 
-  table.sheet-partidas-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:10.5px;}
-  table.sheet-partidas-table th, table.sheet-partidas-table td{border:1px solid #333;padding:4px 8px;width:50%;}
-  table.sheet-partidas-table th{background:#e2e2e2;font-size:9px;text-transform:uppercase;text-align:center;}
-  table.sheet-partidas-table td{height:16px;}
+  table.sheet-partidas-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px;}
+  table.sheet-partidas-table th, table.sheet-partidas-table td{border:1px solid #333;padding:6px 10px;width:50%;}
+  table.sheet-partidas-table th{background:#e2e2e2;font-size:11px;text-transform:uppercase;text-align:center;}
+  table.sheet-partidas-table td{height:22px;}
 
-  .sheet-footer{display:flex;border:1px solid #333;margin-top:16px;font-size:9.5px;text-align:center;}
-  .foot-col{flex:1;padding:10px 8px;}
+  .sheet-footer{display:flex;border:1px solid #333;margin-top:10px;font-size:12px;text-align:center;}
+  .foot-col{flex:1;padding:8px 10px;}
   .foot-col:not(:last-child){border-right:1px solid #333;}
   .foot-corresponde{display:flex;flex-direction:column;justify-content:center;}
-  .foot-corresponde .big{font-size:13px;font-weight:700;line-height:1.3;margin:0 0 8px;}
-  .sig-space{height:26px;}
-  .sig-space-lg{height:56px;}
-  .sig-caption{margin-top:4px;padding-top:4px;border-top:1px solid #333;font-size:9px;}
+  .foot-corresponde .big{font-size:15px;font-weight:700;line-height:1.25;margin:0 0 6px;}
+  .sig-space{height:20px;}
+  .sig-space-lg{height:42px;}
+  .sig-caption{margin-top:4px;padding-top:4px;border-top:1px solid #333;font-size:11px;}
 
   /* ==== Hoja impresa: Protocolo de Control de Compras-Pagos ==== */
   /* Namespace "pp-" separado del de Solicitud de Compra (sheet-/hg-),
@@ -1436,12 +1444,12 @@
         <div class="grid">
           <div class="field">
             <label>N° de Factura *</label>
-            <input type="text" id="fNroFactura" placeholder="Requerido" oninput="this.classList.remove('input-error'); chequearFacturaDuplicada()">
+            <input type="text" id="fNroFactura" placeholder="000-00000000" maxlength="12" oninput="formatearFacturaInput(this); chequearFacturaDuplicada()">
             <span class="field-warning" id="facturaWarning"></span>
           </div>
           <div class="field">
             <label>Importe *</label>
-            <input type="number" step="0.01" min="0" id="fImporteFactura" placeholder="0,00" oninput="this.classList.remove('input-error')">
+            <input type="number" step="0.01" min="0" id="fImporteFactura" placeholder="0,00" oninput="this.classList.remove('input-error'); recalcular();" onblur="formatearImporteInput(this); recalcular();">
           </div>
           <div class="field">
             <label>Proveedor *</label>
@@ -1526,6 +1534,7 @@
         <div class="totals-words" id="totalsWords">Son pesos: —</div>
         <div class="totals-amount" id="totalsAmount">$ 0,00</div>
       </div>
+      <span class="field-warning" id="importeDiscrepanciaWarning"></span>
       </div>
     </div>
 
@@ -1572,72 +1581,96 @@
     <div class="form-layout">
       <div class="form-main">
 
-        <div class="card">
-          <h2>Datos generales</h2>
-          <div class="badges-row">
-            <div class="badge-field">
-              <label>N° de Legajo</label>
-              <div class="badge-value" id="ppLegajoBadge">—</div>
-            </div>
-            <div class="badge-field">
-              <label>Fecha</label>
-              <div class="badge-value" id="ppFechaBadge">—</div>
-            </div>
+        <div class="card collapsed" id="cardPpDatosGenerales">
+          <div class="card-toggle" onclick="toggleCard('cardPpDatosGenerales')">
+            <h2>Datos generales</h2>
+            <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </div>
-          <input type="hidden" id="ppNumero">
-          <input type="hidden" id="ppDia">
-          <input type="hidden" id="ppMes">
-          <input type="hidden" id="ppAnio">
-        </div>
-
-        <div class="card">
-          <h2>Jefe de Área</h2>
-          <div class="grid">
-            <div class="field">
-              <label>Jefe de Área (Sr/Sra) *</label>
-              <select id="ppJefeArea" onchange="this.classList.remove('input-error')">
-                <option value="">-- Seleccionar jefe de área --</option>
-              </select>
+          <div class="card-body">
+            <div class="badges-row">
+              <div class="badge-field">
+                <label>N° de Legajo</label>
+                <div class="badge-value" id="ppLegajoBadge">—</div>
+              </div>
+              <div class="badge-field">
+                <label>Fecha</label>
+                <div class="badge-value" id="ppFechaBadge">—</div>
+              </div>
             </div>
+            <input type="hidden" id="ppNumero">
+            <input type="hidden" id="ppDia">
+            <input type="hidden" id="ppMes">
+            <input type="hidden" id="ppAnio">
           </div>
         </div>
 
-        <div class="card">
-          <h2>Solicitud</h2>
-          <div class="grid">
-            <div class="field" style="grid-column:1/-1;">
-              <label>Solicita *</label>
-              <textarea id="ppSolicita" rows="4" placeholder="Detalle de lo que se solicita" oninput="this.classList.remove('input-error')"></textarea>
-            </div>
-            <div class="field" style="grid-column:1/-1;">
-              <label>Destinado (Detalle) — opcional</label>
-              <input type="text" id="ppDestinado" placeholder="Destino de lo solicitado">
+        <div class="card collapsed" id="cardPpJefeArea">
+          <div class="card-toggle" onclick="toggleCard('cardPpJefeArea')">
+            <h2>Jefe de Área</h2>
+            <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+          <div class="card-body">
+            <div class="grid">
+              <div class="field">
+                <label>Jefe de Área (Sr/Sra) *</label>
+                <select id="ppJefeArea" onchange="this.classList.remove('input-error')">
+                  <option value="">-- Seleccionar jefe de área --</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="card">
-          <h2>Efectuar la compra</h2>
-          <div class="grid">
-            <div class="field">
-              <label>Lugar</label>
-              <select id="ppLugar">
-                <option value="">-- Seleccionar proveedor --</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Fecha de la compra</label>
-              <input type="date" id="ppFechaCompra">
-            </div>
-            <div class="field">
-              <label>Por $</label>
-              <input type="number" step="0.01" min="0" id="ppImporte" placeholder="0,00">
+        <div class="card collapsed" id="cardPpSolicitud">
+          <div class="card-toggle" onclick="toggleCard('cardPpSolicitud')">
+            <h2>Solicitud</h2>
+            <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+          <div class="card-body">
+            <div class="grid">
+              <div class="field" style="grid-column:1/-1;">
+                <label>Solicita *</label>
+                <textarea id="ppSolicita" rows="4" placeholder="Detalle de lo que se solicita" oninput="this.classList.remove('input-error')"></textarea>
+              </div>
+              <div class="field" style="grid-column:1/-1;">
+                <label>Destinado (Detalle) — opcional</label>
+                <input type="text" id="ppDestinado" placeholder="Destino de lo solicitado">
+              </div>
             </div>
           </div>
         </div>
 
-        <div class="card">
-          <h2>Recepción del producto / elementos / mercaderías</h2>
+        <div class="card collapsed" id="cardPpCompra">
+          <div class="card-toggle" onclick="toggleCard('cardPpCompra')">
+            <h2>Efectuar la compra</h2>
+            <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+          <div class="card-body">
+            <div class="grid">
+              <div class="field">
+                <label>Lugar</label>
+                <select id="ppLugar">
+                  <option value="">-- Seleccionar proveedor --</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Fecha de la compra</label>
+                <input type="date" id="ppFechaCompra">
+              </div>
+              <div class="field">
+                <label>Por $</label>
+                <input type="number" step="0.01" min="0" id="ppImporte" placeholder="0,00">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card collapsed" id="cardPpRecepcion">
+          <div class="card-toggle" onclick="toggleCard('cardPpRecepcion')">
+            <h2>Recepción del producto / elementos / mercaderías</h2>
+            <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </div>
+          <div class="card-body">
           <div class="grid">
             <div class="field" style="grid-column:1/-1;">
               <label>Entregar a</label>
@@ -1675,6 +1708,7 @@
               <label>Para ser destinado a</label>
               <input type="text" id="ppParaDestino" placeholder="Destino final">
             </div>
+          </div>
           </div>
         </div>
 
@@ -1994,7 +2028,7 @@ function crearFila(data){
   tr.id = id;
   tr.innerHTML = `
     <td><input type="number" class="cant" min="0" value="${data?.cant ?? 1}" oninput="recalcular()"></td>
-    <td><textarea rows="1" placeholder="Ej: Recuplast frente x 20 Lts">${data?.detalle ?? ''}</textarea></td>
+    <td><textarea rows="1" placeholder="Ej: Recuplast frente x 20 Lts" oninput="recalcular()">${data?.detalle ?? ''}</textarea></td>
     <td><textarea rows="1" placeholder="Opcional">${data?.obs ?? ''}</textarea></td>
     <td><input type="number" class="precio" min="0" step="0.01" placeholder="0,00" value="${data?.unit ?? ''}" oninput="recalcular()"></td>
     <td class="row-total">$ 0,00</td>
@@ -2086,6 +2120,22 @@ function recalcular(){
   document.getElementById('totalsWords').textContent = total > 0
     ? 'Son pesos: ' + montoALetras(total)
     : 'Son pesos: —';
+
+  const warnEl = document.getElementById('importeDiscrepanciaWarning');
+  if(warnEl){
+    const importeEl = document.getElementById('fImporteFactura');
+    const importeFactura = importeEl && importeEl.value !== '' ? parseFloat(importeEl.value) : null;
+    if(importeFactura !== null && !isNaN(importeFactura) && Math.abs(importeFactura - total) > 0.009){
+      warnEl.textContent = `⚠ El importe de la factura ($ ${fmtMoney(importeFactura)}) no coincide con el total del detalle ($ ${fmtMoney(total)})`;
+      warnEl.classList.add('visible');
+    } else {
+      warnEl.textContent = '';
+      warnEl.classList.remove('visible');
+    }
+  }
+
+  marcarFilasIncompletas();
+
   return total;
 }
 
@@ -2508,14 +2558,61 @@ function validarCamposObligatoriosSolicitud(){
   return faltante;
 }
 
-function hayAlMenosUnItemCargado(){
+// Marca en rojo cualquier fila del detalle que tenga algún dato cargado
+// (cantidad, detalle o precio) pero no todos: una fila a medio completar.
+function marcarFilasIncompletas(){
+  document.querySelectorAll('#itemsBody tr').forEach(tr => {
+    const cantEl = tr.querySelector('.cant');
+    const precioEl = tr.querySelector('.precio');
+    const detalleEl = tr.querySelectorAll('textarea')[0];
+    const cant = parseFloat(cantEl.value);
+    const detalle = detalleEl.value.trim();
+    const precioTexto = precioEl.value;
+    const precio = parseFloat(precioTexto);
+
+    const tocada = detalle !== '' || precioTexto !== '' || (!isNaN(cant) && cant !== 1);
+    const completa = detalle !== '' && precioTexto !== '' && !isNaN(precio) && precio > 0 && !isNaN(cant) && cant > 0;
+
+    tr.classList.toggle('fila-incompleta', tocada && !completa);
+  });
+}
+
+// Exige que cada fila cargada en el detalle esté completa (cantidad, detalle
+// y precio); si alguna quedó a medias, hay que completarla o eliminarla.
+function validarItemsCompletos(){
   const filas = document.querySelectorAll('#itemsBody tr');
-  for(const tr of filas){
-    const textareas = tr.querySelectorAll('textarea');
-    const detalle = textareas[0] ? textareas[0].value.trim() : '';
-    if(detalle) return true;
+  if(filas.length === 0){
+    return 'Cargá al menos un ítem con su detalle antes de guardar';
   }
-  return false;
+
+  let error = null;
+  let hayAlMenosUnaCompleta = false;
+  let indice = 0;
+
+  filas.forEach(tr => {
+    indice++;
+    const cantEl = tr.querySelector('.cant');
+    const precioEl = tr.querySelector('.precio');
+    const detalleEl = tr.querySelectorAll('textarea')[0];
+    const cant = parseFloat(cantEl.value);
+    const detalle = detalleEl.value.trim();
+    const precioTexto = precioEl.value;
+    const precio = parseFloat(precioTexto);
+
+    const tocada = detalle !== '' || precioTexto !== '' || (!isNaN(cant) && cant !== 1);
+    const completa = detalle !== '' && precioTexto !== '' && !isNaN(precio) && precio > 0 && !isNaN(cant) && cant > 0;
+
+    tr.classList.toggle('fila-incompleta', tocada && !completa);
+
+    if(completa) hayAlMenosUnaCompleta = true;
+    if(tocada && !completa && !error){
+      error = `El ítem N° ${indice} de la tabla está incompleto: completá cantidad, detalle y precio, o eliminá esa fila`;
+    }
+  });
+
+  if(error) return error;
+  if(!hayAlMenosUnaCompleta) return 'Cargá al menos un ítem con su detalle antes de guardar';
+  return null;
 }
 
 async function guardarSolicitud(){
@@ -2527,9 +2624,10 @@ async function guardarSolicitud(){
       statusEl.textContent = `Completá el campo obligatorio: ${faltante}`;
       return;
     }
-    if(!hayAlMenosUnItemCargado()){
+    const errorItems = validarItemsCompletos();
+    if(errorItems){
       statusEl.style.color = 'var(--danger)';
-      statusEl.textContent = 'Cargá al menos un ítem con su detalle antes de guardar';
+      statusEl.textContent = errorItems;
       return;
     }
     const esNueva = !currentId;
@@ -3147,7 +3245,7 @@ function construirPaginaHTML(data, itemsPagina, numeroPagina, totalPagina, dupli
       <div class="sheet-footer">
         <div class="foot-col foot-corresponde">
           <p class="big">Corresponde a<br>Nota de Pedido</p>
-          <p>N° <span>${escapeHtml(data.notaPedido||'')}</span></p>
+          <p>N° <span>&nbsp;</span></p>
         </div>
         <div class="foot-col">
           <p>Autorización del<br>Secretario de Economía</p>
@@ -3206,6 +3304,19 @@ function centrarTodosLosNumeros(){
 }
 
 function imprimir(){
+  const statusEl = document.getElementById('statusMsg');
+  const faltante = validarCamposObligatoriosSolicitud();
+  if(faltante){
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = `Completá el campo obligatorio: ${faltante}`;
+    return;
+  }
+  const errorItems = validarItemsCompletos();
+  if(errorItems){
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = errorItems;
+    return;
+  }
   generarPaginasImpresion();
   centrarTodosLosNumeros();
   setTimeout(()=> window.print(), 60);
@@ -3351,6 +3462,21 @@ function cerrarModalProveedor(){
 }
 
 let currentProveedorId = null;
+
+function formatearImporteInput(el){
+  if(el.value === '') return;
+  const num = parseFloat(el.value);
+  if(isNaN(num)) return;
+  el.value = num.toFixed(2);
+}
+
+function formatearFacturaInput(el){
+  el.classList.remove('input-error');
+  const digitos = el.value.replace(/\D/g, '').slice(0, 11);
+  let formateado = digitos;
+  if(digitos.length > 3) formateado = digitos.slice(0, 3) + '-' + digitos.slice(3);
+  el.value = formateado;
+}
 
 function formatearCuilInput(el){
   el.classList.remove('input-error');
