@@ -70,32 +70,32 @@
   }
   /* ---------- Tema azul ---------- */
   html[data-theme="azul"]{
-    --navy:#0c4d7a;
-    --navy-deep:#083656;
-    --heading:#083656;
-    --on-accent:#ffffff;
-    --paper:#bcdaf2;
-    --paper-line:#8fbde0;
-    --ink:#0c2438;
-    --ink-soft:#3c5b74;
-    --gold:#c98a2b;
-    --gold-deep:#a86f1f;
-    --surface:#eef6fc;
-    --ok:#2f6b4f;
-    --danger:#a13d2e;
-    --danger-line:#e3c9c3;
-    --white:#ffffff;
-    --surface-2:#d7ebfa;
-    --readonly-bg:#d2e6f4;
-    --error-bg:#fdf2f0;
-    --hover-danger-bg:#f5e6e3;
-    --dashed-border:#7fabd0;
-    --teal:#1f8a76;
-    --teal-deep:#186e5d;
-    --purple:#6a4e94;
-    --purple-deep:#533c76;
-    --slate:#3d5f7d;
-    --slate-deep:#2f4a63;
+    --navy:#4a90c9;
+    --navy-deep:#6ba8db;
+    --heading:#dceefc;
+    --on-accent:#071b2c;
+    --paper:#0a1929;
+    --paper-line:#20415e;
+    --ink:#d8e6f0;
+    --ink-soft:#93aec4;
+    --gold:#d9a548;
+    --gold-deep:#eab868;
+    --surface:#122c46;
+    --ok:#5fbf8f;
+    --danger:#e0806e;
+    --danger-line:#5a3530;
+    --white:#16324d;
+    --surface-2:#1a3854;
+    --readonly-bg:#1a3854;
+    --error-bg:#3a2624;
+    --hover-danger-bg:#3a2624;
+    --dashed-border:#3a5570;
+    --teal:#45b8a0;
+    --teal-deep:#63cbb5;
+    --purple:#a487d6;
+    --purple-deep:#b89fe3;
+    --slate:#7a93ab;
+    --slate-deep:#93a8bd;
   }
 
 
@@ -219,6 +219,9 @@
   }
   .icon-btn:hover{background:var(--navy);border-color:var(--navy);color:var(--on-accent);}
   .icon-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+  .field-inline-btn{display:flex;align-items:center;gap:8px;}
+  .field-inline-btn select{flex:1;min-width:0;}
 
   .grid{
     display:grid;
@@ -359,6 +362,9 @@
   table.items input.cant{width:60px;text-align:center;}
   table.items input.precio{width:100px;text-align:right;}
   .row-total{font-weight:600;text-align:right;padding-right:8px;white-space:nowrap;font-variant-numeric:tabular-nums;}
+  .descuento-cell{display:flex;gap:3px;align-items:center;}
+  .descuento-cell .descuento-valor{width:100%;min-width:0;}
+  .descuento-cell .descuento-tipo{width:48px;flex:0 0 auto;padding:4px 2px;}
   .rm-row{
     background:none;border:none;color:var(--danger);
     cursor:pointer;font-size:16px;line-height:1;padding:4px;
@@ -1162,33 +1168,33 @@
   /* ==== Hoja impresa: Protocolo de Control de Compras-Pagos ==== */
   /* Namespace "pp-" separado del de Solicitud de Compra (sheet-/hg-),
      así ninguno de los dos formularios afecta el diseño del otro. */
-  .pp-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:2px;}
-  .pp-header-spacer{width:92px;flex:0 0 auto;}
-  .pp-title{flex:1;text-align:center;font-weight:700;font-size:14px;letter-spacing:0.02em;padding-top:4px;}
-  .pp-seal{width:92px;flex:0 0 auto;margin-top:-10px;}
+  .pp-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:6px;}
+  .pp-header-spacer{width:100px;flex:0 0 auto;}
+  .pp-title{flex:1;text-align:center;font-weight:700;font-size:17.5px;letter-spacing:0.02em;padding-top:8px;}
+  .pp-seal{width:100px;flex:0 0 auto;margin-top:-6px;}
   .pp-seal img{width:100%;height:auto;display:block;}
   .pp-row-right{justify-content:flex-end;}
 
-  .pp-row{margin:6px 0;font-size:11px;display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;}
-  .pp-line{border-bottom:1px solid #333;display:inline-block;min-width:140px;padding:0 4px;}
+  .pp-row{margin:11px 0;font-size:13.5px;display:flex;align-items:baseline;flex-wrap:wrap;gap:6px;}
+  .pp-line{border-bottom:1px solid #333;display:inline-block;min-width:140px;padding:0 6px;}
   .pp-line.grow{flex:1;min-width:120px;}
 
-  .pp-warning{font-weight:700;font-size:11px;margin:9px 0;}
-  .pp-section{font-weight:700;font-size:11px;margin:10px 0 4px;}
+  .pp-warning{font-weight:700;font-size:13.5px;margin:15px 0;}
+  .pp-section{font-weight:700;font-size:13.5px;margin:17px 0 7px;}
 
-  .pp-blank-lines div{border-bottom:1px solid #333;height:15px;}
+  .pp-blank-lines div{border-bottom:1px solid #333;height:23px;}
 
-  .pp-sig-row{display:flex;justify-content:space-around;gap:20px;margin-top:16px;text-align:center;}
-  .pp-sig-row .pp-sig{flex:1;font-size:9.5px;border-top:1px solid #333;padding-top:3px;}
+  .pp-sig-row{display:flex;justify-content:space-around;gap:20px;margin-top:24px;text-align:center;}
+  .pp-sig-row .pp-sig{flex:1;font-size:12px;border-top:1px solid #333;padding-top:5px;}
 
-  .pp-box{border:1px solid #333;padding:5px 10px;font-weight:700;font-size:9px;text-align:center;margin:8px 0;}
+  .pp-box{border:1px solid #333;padding:9px 14px;font-weight:700;font-size:11.5px;text-align:center;margin:15px 0;}
 
-  .pp-checks{display:flex;justify-content:space-around;margin:10px 0;font-size:10px;text-align:center;}
-  .pp-check{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;}
-  .pp-checkbox{width:15px;height:15px;border:1.4px solid #333;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;}
+  .pp-checks{display:flex;justify-content:space-around;margin:17px 0;font-size:12.5px;text-align:center;}
+  .pp-check{display:flex;flex-direction:column;align-items:center;gap:7px;flex:1;}
+  .pp-checkbox{width:19px;height:19px;border:1.6px solid #333;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;}
 
-  .pp-footer-note{font-size:8.5px;margin-top:10px;line-height:1.35;}
-  .pp-footer-note p{margin:0 0 5px;font-weight:700;}
+  .pp-footer-note{font-size:12.5px;margin-top:18px;line-height:1.5;}
+  .pp-footer-note p{margin:0 0 8px;font-weight:700;}
   .pp-footer-note p.pp-plain{font-weight:400;}
 /* ===== Indicador de sincronización con Firestore ===== */
 .sync-status{
@@ -1543,6 +1549,7 @@
             <th>Detalle</th>
             <th>Observaciones</th>
             <th style="width:110px;">Precio Unit.</th>
+            <th style="width:100px;">Descuento</th>
             <th style="width:110px;">Total</th>
             <th style="width:30px;"></th>
           </tr>
@@ -1631,7 +1638,18 @@
         <div class="card collapsed" id="cardPpJefeArea">
           <div class="card-toggle" onclick="toggleCard('cardPpJefeArea')">
             <h2>Jefe de Área</h2>
-            <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <div class="card-toggle-right">
+              <button type="button" class="icon-btn" onclick="event.stopPropagation(); abrirModalOficina()" title="Oficinas guardadas" aria-label="Oficinas guardadas">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 21h18"></path>
+                  <path d="M5 21V7l7-4 7 4v14"></path>
+                  <path d="M9 21v-6h6v6"></path>
+                  <path d="M9 10h.01"></path>
+                  <path d="M15 10h.01"></path>
+                </svg>
+              </button>
+              <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
           </div>
           <div class="card-body">
             <div class="grid">
@@ -1667,7 +1685,17 @@
         <div class="card collapsed" id="cardPpCompra">
           <div class="card-toggle" onclick="toggleCard('cardPpCompra')">
             <h2>Efectuar la compra</h2>
-            <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            <div class="card-toggle-right">
+              <button type="button" class="icon-btn" onclick="event.stopPropagation(); abrirModalProveedor()" title="Proveedores guardados" aria-label="Proveedores guardados">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="10" cy="7" r="4"></circle>
+                  <line x1="19" y1="8" x2="19" y2="14"></line>
+                  <line x1="16" y1="11" x2="22" y2="11"></line>
+                </svg>
+              </button>
+              <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
           </div>
           <div class="card-body">
             <div class="grid">
@@ -2081,10 +2109,19 @@ function crearFila(data){
   const tr = document.createElement('tr');
   tr.id = id;
   tr.innerHTML = `
-    <td><input type="number" class="cant" min="0" value="${data?.cant ?? 1}" oninput="recalcular()"></td>
-    <td><textarea rows="1" placeholder="Ej: Recuplast frente x 20 Lts" oninput="recalcular()">${data?.detalle ?? ''}</textarea></td>
+    <td><input type="number" class="cant" min="0" value="${data?.cant ?? ''}" oninput="recalcular()"></td>
+    <td><textarea rows="1" placeholder="Ej: Artículo o servicio a adquirir" oninput="recalcular()">${data?.detalle ?? ''}</textarea></td>
     <td><textarea rows="1" placeholder="Opcional">${data?.obs ?? ''}</textarea></td>
-    <td><input type="number" class="precio" min="0" step="0.01" placeholder="0,00" value="${data?.unit ?? ''}" oninput="recalcular()"></td>
+    <td><input type="number" class="precio" min="0" step="0.01" placeholder="0,00" value="${data?.unit ?? ''}" oninput="recalcular()" onblur="formatearImporteInput(this); recalcular();"></td>
+    <td>
+      <div class="descuento-cell">
+        <input type="number" class="descuento-valor" min="0" step="0.01" placeholder="0" value="${data?.descValor ?? ''}" oninput="recalcular()" onblur="formatearImporteInput(this); recalcular();">
+        <select class="descuento-tipo" onchange="recalcular()">
+          <option value="pct" ${data?.descTipo === 'fijo' ? '' : 'selected'}>%</option>
+          <option value="fijo" ${data?.descTipo === 'fijo' ? 'selected' : ''}>$</option>
+        </select>
+      </div>
+    </td>
     <td class="row-total">$ 0,00</td>
     <td><button class="rm-row" onclick="quitarFila('${id}')" title="Quitar ítem">✕</button></td>
   `;
@@ -2161,12 +2198,29 @@ function fmtMoney(n){
   return n.toLocaleString('es-AR', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
+// Calcula el total de un ítem aplicando el descuento (si tiene), ya sea en
+// porcentaje o en un valor fijo. El descuento nunca deja el total negativo.
+function calcularTotalConDescuento(cant, unit, descValor, descTipo){
+  let total = (parseFloat(cant) || 0) * (parseFloat(unit) || 0);
+  const dv = parseFloat(descValor) || 0;
+  if(dv > 0){
+    let descuentoMonto = descTipo === 'fijo' ? dv : (total * dv / 100);
+    if(descuentoMonto > total) descuentoMonto = total;
+    total -= descuentoMonto;
+  }
+  return total;
+}
+
 function recalcular(){
   let total = 0;
   document.querySelectorAll('#itemsBody tr').forEach(tr=>{
     const cant = parseFloat(tr.querySelector('.cant').value) || 0;
     const unit = parseFloat(tr.querySelector('.precio').value) || 0;
-    const rowTotal = cant * unit;
+    const descValorEl = tr.querySelector('.descuento-valor');
+    const descTipoEl = tr.querySelector('.descuento-tipo');
+    const descValor = descValorEl ? descValorEl.value : 0;
+    const descTipo = descTipoEl ? descTipoEl.value : 'pct';
+    const rowTotal = calcularTotalConDescuento(cant, unit, descValor, descTipo);
     tr.querySelector('.row-total').textContent = '$ ' + fmtMoney(rowTotal);
     total += rowTotal;
   });
@@ -2278,7 +2332,9 @@ function recolectarDatos(){
       cant: parseFloat(tr.querySelector('.cant').value) || 0,
       detalle: tr.querySelector('textarea:nth-of-type(1)') ? tr.querySelectorAll('textarea')[0].value : '',
       obs: tr.querySelectorAll('textarea')[1] ? tr.querySelectorAll('textarea')[1].value : '',
-      unit: parseFloat(tr.querySelector('.precio').value) || 0
+      unit: parseFloat(tr.querySelector('.precio').value) || 0,
+      descValor: tr.querySelector('.descuento-valor') ? (parseFloat(tr.querySelector('.descuento-valor').value) || 0) : 0,
+      descTipo: tr.querySelector('.descuento-tipo') ? tr.querySelector('.descuento-tipo').value : 'pct'
     });
   });
   return {
@@ -2624,7 +2680,8 @@ function marcarFilasIncompletas(){
     const precioTexto = precioEl.value;
     const precio = parseFloat(precioTexto);
 
-    const tocada = detalle !== '' || precioTexto !== '' || (!isNaN(cant) && cant !== 1);
+    const cantTexto = cantEl.value;
+    const tocada = detalle !== '' || precioTexto !== '' || cantTexto !== '';
     const completa = detalle !== '' && precioTexto !== '' && !isNaN(precio) && precio > 0 && !isNaN(cant) && cant > 0;
 
     tr.classList.toggle('fila-incompleta', tocada && !completa);
@@ -2653,7 +2710,8 @@ function validarItemsCompletos(){
     const precioTexto = precioEl.value;
     const precio = parseFloat(precioTexto);
 
-    const tocada = detalle !== '' || precioTexto !== '' || (!isNaN(cant) && cant !== 1);
+    const cantTexto = cantEl.value;
+    const tocada = detalle !== '' || precioTexto !== '' || cantTexto !== '';
     const completa = detalle !== '' && precioTexto !== '' && !isNaN(precio) && precio > 0 && !isNaN(cant) && cant > 0;
 
     tr.classList.toggle('fila-incompleta', tocada && !completa);
@@ -3202,7 +3260,7 @@ function escapeHtml(str){
 function construirFilasHTML(itemsPagina){
   let rows = '';
   itemsPagina.forEach(it => {
-    const rowTotal = (it.cant||0) * (it.unit||0);
+    const rowTotal = calcularTotalConDescuento(it.cant, it.unit, it.descValor, it.descTipo);
     rows += `<tr>
       <td style="text-align:center;">${it.cant || ''}</td>
       <td style="text-align:center;text-transform:capitalize;">${it.cant ? numeroALetras(it.cant) : ''}</td>
@@ -3337,7 +3395,7 @@ function generarPaginasImpresion(){
     } else {
       numeroPagina = chunks.length > 1 ? `${data.numero || ''} (${idx+1})` : (data.numero || '');
     }
-    const totalPagina = itemsPagina.reduce((s, it) => s + (it.cant||0) * (it.unit||0), 0);
+    const totalPagina = itemsPagina.reduce((s, it) => s + calcularTotalConDescuento(it.cant, it.unit, it.descValor, it.descTipo), 0);
 
     container.insertAdjacentHTML('beforeend', construirPaginaHTML(data, itemsPagina, numeroPagina, totalPagina, false));
     container.insertAdjacentHTML('beforeend', construirPaginaHTML(data, itemsPagina, numeroPagina, totalPagina, true));
@@ -3406,7 +3464,7 @@ async function exportarSolicitudesPDF(){
 
     chunks.forEach((itemsPagina, idx) => {
       const numeroPagina = chunks.length > 1 ? `${data.numero || ''} (${idx+1}/${chunks.length})` : (data.numero || '');
-      const totalPagina = itemsPagina.reduce((s, it) => s + (it.cant||0) * (it.unit||0), 0);
+      const totalPagina = itemsPagina.reduce((s, it) => s + calcularTotalConDescuento(it.cant, it.unit, it.descValor, it.descTipo), 0);
       container.insertAdjacentHTML('beforeend', construirPaginaHTML(data, itemsPagina, numeroPagina, totalPagina, false));
     });
   });
@@ -4318,41 +4376,43 @@ function construirProtocoloHTML(data){
         <div class="pp-seal"><img src="data:image/png;base64,${PROTO_LOGO_B64}" alt="Municipalidad de Villa Ángela"></div>
       </div>
 
-      <div class="pp-row"><span>N° de Legajo:</span><span class="pp-line grow">${escapeHtml(data.numero||'')}</span></div>
-
-      <div class="pp-row pp-row-right">
-        <span>Villa Ángela</span><span class="pp-line" style="min-width:40px;">${escapeHtml(data.dia||'')}</span>
-        <span>de</span><span class="pp-line" style="min-width:80px;">${escapeHtml(data.mes||'')}</span>
-        <span>de 20${escapeHtml(data.anio||'')}</span>
+      <div class="pp-row" style="justify-content:space-between;">
+        <span style="display:flex;align-items:baseline;gap:6px;">
+          <span>N° de Legajo:</span><span class="pp-line" style="min-width:170px;">${escapeHtml(data.numero||'')}</span>
+        </span>
+        <span style="display:flex;align-items:baseline;gap:6px;">
+          <span>Villa Ángela</span><span class="pp-line" style="min-width:36px;">${escapeHtml(data.dia||'')}</span>
+          <span>de</span><span class="pp-line" style="min-width:70px;">${escapeHtml(data.mes||'')}</span>
+          <span>de 20${escapeHtml(data.anio||'')}</span>
+        </span>
       </div>
 
       <p class="pp-warning">Nadie que no sea jefe de área puede solicitar una compra porque no pasa.-</p>
 
       <div class="pp-row"><span>JEFE DE ÁREA: Sr/Sra.</span><span class="pp-line grow">${escapeHtml(data.jefeArea||'')}</span></div>
 
-      <div class="pp-sig-row" style="margin-top:16px;">
-        <div class="pp-sig">Firma</div>
-        <div class="pp-sig">Secretario</div>
+      <div class="pp-sig-row" style="justify-content:flex-end; gap:36px; margin-top:24px;">
+        <div class="pp-sig" style="flex:0 0 150px;">Firma</div>
+        <div class="pp-sig" style="flex:0 0 150px;">Secretario</div>
       </div>
 
-      <p class="pp-section">SOLICITA:</p>
+      <p class="pp-section" style="margin-bottom:0;">SOLICITA:</p>
       <div class="pp-blank-lines">
         <div style="padding:2px 4px;">${escapeHtml(data.solicita||'')}</div>
-        <div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div><div></div>
       </div>
 
-      <div class="pp-row" style="margin-top:14px;"><span>Destinado (Detalle):</span><span class="pp-line grow">${escapeHtml(data.destinado||'')}</span></div>
+      <div class="pp-row" style="margin-top:14px; margin-bottom:2px;"><span>Destinado (Detalle):</span><span class="pp-line grow">${escapeHtml(data.destinado||'')}</span></div>
+      <div class="pp-row" style="margin-top:2px;"><span class="pp-line grow">&nbsp;</span></div>
 
       <p class="pp-section">PASE A INTENDENCIA PARA DAR CURSO:</p>
       <div class="pp-sig-row">
-        <div class="pp-sig">FIRMA INTENDENTE</div>
-        <div class="pp-sig">FIRMA SECRETARIO DE GOBIERNO</div>
+        <div class="pp-sig" style="flex:0 0 210px;">FIRMA INTENDENTE</div>
+        <div class="pp-sig" style="flex:0 0 210px;">FIRMA SECRETARIO DE GOBIERNO</div>
       </div>
 
       <p class="pp-section">PASE A COMPRAS: <span style="font-weight:400;">a fin de solicitar el PRESUPUESTO de dos o más lugares</span></p>
-      <div class="pp-sig-row" style="justify-content:flex-start;">
-        <div class="pp-sig" style="flex:0 0 260px;">Firma jefe de compras</div>
-      </div>
+      <div class="pp-row"><span>Firma jefe de compras</span><span class="pp-line grow"></span></div>
 
       <div class="pp-row" style="margin-top:16px;"><span>EFECTUAR la compra en (lugar)</span><span class="pp-line grow">${escapeHtml(data.lugar||'')}</span></div>
       <div class="pp-row"><span>en la fecha</span><span class="pp-line">${escapeHtml(formatearFechaDDMMAAAA(data.fechaCompra))}</span><span>Por $</span><span class="pp-line grow">${data.importe ? fmtMoney(parseFloat(data.importe)) : ''}</span></div>
