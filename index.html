@@ -29,6 +29,12 @@
     --error-bg:#fdf2f0;
     --hover-danger-bg:#f5e6e3;
     --dashed-border:#b7bfc8;
+    --teal:#2f7a6b;
+    --teal-deep:#245f53;
+    --purple:#6b4a8a;
+    --purple-deep:#54396d;
+    --slate:#4f5f74;
+    --slate-deep:#3c4a5b;
     --font-display:'Lora', Georgia, 'Times New Roman', serif;
     --font-body:'Inter', 'Segoe UI', Arial, sans-serif;
   }
@@ -55,6 +61,12 @@
     --error-bg:#3d2827;
     --hover-danger-bg:#3d2827;
     --dashed-border:#565e67;
+    --teal:#4fc3ad;
+    --teal-deep:#6fd6c2;
+    --purple:#b294e0;
+    --purple-deep:#c7aef0;
+    --slate:#8fa3b8;
+    --slate-deep:#a8bacb;
   }
   /* ---------- Tema azul ---------- */
   html[data-theme="azul"]{
@@ -78,6 +90,12 @@
     --error-bg:#fdf2f0;
     --hover-danger-bg:#f5e6e3;
     --dashed-border:#7fabd0;
+    --teal:#1f8a76;
+    --teal-deep:#186e5d;
+    --purple:#6a4e94;
+    --purple-deep:#533c76;
+    --slate:#3d5f7d;
+    --slate-deep:#2f4a63;
   }
 
 
@@ -393,6 +411,12 @@
   .btn-ghost:hover{background:var(--surface-2);}
   .btn-print{background:var(--gold);color:var(--on-accent);}
   .btn-print:hover{background:var(--gold-deep);}
+  .btn-teal{background:var(--teal);color:var(--on-accent);}
+  .btn-teal:hover{background:var(--teal-deep);}
+  .btn-purple{background:var(--purple);color:var(--on-accent);}
+  .btn-purple:hover{background:var(--purple-deep);}
+  .btn-slate{background:var(--slate);color:var(--on-accent);}
+  .btn-slate:hover{background:var(--slate-deep);}
   .status-msg{font-size:13px;color:var(--ok);align-self:center;font-weight:600;}
 
   .btn-icon{
@@ -1127,12 +1151,12 @@
   table.sheet-partidas-table td{height:22px;}
 
   .sheet-footer{display:flex;border:1px solid #333;margin-top:10px;font-size:12px;text-align:center;}
-  .foot-col{flex:1;padding:8px 10px;}
+  .foot-col{flex:1;padding:8px 10px;display:flex;flex-direction:column;}
   .foot-col:not(:last-child){border-right:1px solid #333;}
   .foot-corresponde{display:flex;flex-direction:column;justify-content:center;}
   .foot-corresponde .big{font-size:15px;font-weight:700;line-height:1.25;margin:0 0 6px;}
   .sig-space{height:20px;}
-  .sig-space-lg{height:42px;}
+  .sig-space-lg{height:42px;margin-top:auto;}
   .sig-caption{margin-top:4px;padding-top:4px;border-top:1px solid #333;font-size:11px;}
 
   /* ==== Hoja impresa: Protocolo de Control de Compras-Pagos ==== */
@@ -1546,13 +1570,13 @@
       <button class="btn btn-print btn-icon" onclick="imprimir()" title="Imprimir" aria-label="Imprimir">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
       </button>
-      <button class="btn btn-ghost btn-icon" onclick="nuevaSolicitud()" title="Nueva / Limpiar" aria-label="Nueva / Limpiar">
+      <button class="btn btn-teal btn-icon" onclick="nuevaSolicitud()" title="Nueva / Limpiar" aria-label="Nueva / Limpiar">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
       </button>
-      <button class="btn btn-ghost btn-icon" onclick="switchTab('hist')" title="Historial" aria-label="Historial">
+      <button class="btn btn-purple btn-icon" onclick="switchTab('hist')" title="Historial" aria-label="Historial">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 16 14"></polyline></svg>
       </button>
-      <button class="btn btn-ghost btn-icon" onclick="abrirModalReportes()" title="Reportes" aria-label="Reportes">
+      <button class="btn btn-slate btn-icon" onclick="abrirModalReportes()" title="Reportes" aria-label="Reportes">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
       </button>
       <span class="status-msg" id="statusMsg"></span>
@@ -1721,10 +1745,10 @@
         <button class="btn btn-print btn-icon" onclick="imprimirProtocolo()" title="Imprimir" aria-label="Imprimir">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
         </button>
-        <button class="btn btn-ghost btn-icon" onclick="nuevoProtocolo()" title="Nuevo / Limpiar" aria-label="Nuevo / Limpiar">
+        <button class="btn btn-teal btn-icon" onclick="nuevoProtocolo()" title="Nuevo / Limpiar" aria-label="Nuevo / Limpiar">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
         </button>
-        <button class="btn btn-ghost btn-icon" onclick="switchTab('histProtocolo')" title="Historial de protocolos" aria-label="Historial de protocolos">
+        <button class="btn btn-purple btn-icon" onclick="switchTab('histProtocolo')" title="Historial de protocolos" aria-label="Historial de protocolos">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><polyline points="12 7 12 12 16 14"></polyline></svg>
         </button>
         <span class="status-msg" id="protocoloStatusMsg"></span>
@@ -1750,8 +1774,12 @@
 
   <!-- ===== AJUSTES TAB ===== -->
   <div id="tabAjustes" style="display:none;">
-    <div class="card">
-      <h2>Apariencia</h2>
+    <div class="card collapsed" id="cardAjApariencia">
+      <div class="card-toggle" onclick="toggleCard('cardAjApariencia')">
+        <h2>Apariencia</h2>
+        <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
+      <div class="card-body">
       <p class="ajustes-desc">Elegí el tema de colores de la aplicación. La elección se guarda en este navegador.</p>
       <div class="radio-row" id="ajTemaOpciones">
         <label class="radio-opt">
@@ -1767,10 +1795,15 @@
           Azul
         </label>
       </div>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>Numeración manual</h2>
+    <div class="card collapsed" id="cardAjNumeracion">
+      <div class="card-toggle" onclick="toggleCard('cardAjNumeracion')">
+        <h2>Numeración manual</h2>
+        <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
+      <div class="card-body">
       <p class="ajustes-desc">Forzá el próximo número si necesitás continuar una numeración existente en papel. Se usa una sola vez: en cuanto guardes la próxima Solicitud o Protocolo, la numeración automática vuelve a seguir sola a partir de ahí.</p>
       <div class="grid">
         <div class="field">
@@ -1787,20 +1820,30 @@
         <button class="btn btn-ghost" onclick="quitarNumeracionForzada()">Quitar forzado</button>
         <span class="status-msg" id="ajustesNumStatusMsg"></span>
       </div>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>Administración</h2>
+    <div class="card collapsed" id="cardAjAdministracion">
+      <div class="card-toggle" onclick="toggleCard('cardAjAdministracion')">
+        <h2>Administración</h2>
+        <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
+      <div class="card-body">
       <p class="ajustes-desc">Opciones avanzadas para la gestión de solicitudes y protocolos.</p>
       <label class="radio-opt" style="display:flex;align-items:center;gap:10px;">
         <input type="checkbox" id="ajHabilitarEliminar" onchange="guardarConfigAdmin()">
         <span>Permitir eliminar solicitudes/protocolos</span>
       </label>
       <p class="ajustes-desc" style="font-size:10.5px;margin-top:6px;color:var(--danger);">⚠ Cuando está habilitado, permite eliminar permanentemente registros. Proceder con cuidado.</p>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>Copia de seguridad</h2>
+    <div class="card collapsed" id="cardAjBackup">
+      <div class="card-toggle" onclick="toggleCard('cardAjBackup')">
+        <h2>Copia de seguridad</h2>
+        <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
+      <div class="card-body">
       <p class="ajustes-desc">Toda la información (solicitudes, proveedores, oficinas y protocolos) se guarda en este navegador. Exportá una copia periódicamente para no perderla si cambiás de equipo o navegador.</p>
       <div class="actions">
         <button class="btn btn-primary" onclick="exportarDatos()">Exportar copia (.json)</button>
@@ -1815,19 +1858,29 @@
       <div class="actions" style="margin-top:6px;">
         <span class="status-msg" id="ajustesBackupStatusMsg"></span>
       </div>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>Datos guardados</h2>
+    <div class="card collapsed" id="cardAjDatos">
+      <div class="card-toggle" onclick="toggleCard('cardAjDatos')">
+        <h2>Datos guardados</h2>
+        <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
+      <div class="card-body">
       <div class="ajustes-resumen" id="ajustesResumen"></div>
       <div class="actions" style="margin-top:14px;">
         <button class="btn btn-ghost" style="color:var(--danger);border-color:var(--danger-line);" onclick="borrarTodosLosDatos()">Borrar todos los datos</button>
         <span class="status-msg" id="ajustesBorrarStatusMsg"></span>
       </div>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>Gestión de usuarios</h2>
+    <div class="card collapsed" id="cardAjUsuarios">
+      <div class="card-toggle" onclick="toggleCard('cardAjUsuarios')">
+        <h2>Gestión de usuarios</h2>
+        <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
+      <div class="card-body">
       <p class="ajustes-desc">Administrá quién puede entrar a la app y quién tiene acceso a esta sección de Ajustes.</p>
       <div class="grid">
         <div class="field"><label>Nombre y apellido</label><input type="text" id="usNombre"></div>
@@ -1847,6 +1900,7 @@
         <span class="status-msg" id="usuariosStatusMsg"></span>
       </div>
       <div id="listaUsuariosApp" style="margin-top:16px;"></div>
+      </div>
     </div>
   </div>
 
