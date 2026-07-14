@@ -550,6 +550,12 @@
 
   .ajustes-desc{font-size:13px;color:var(--ink-soft);margin:0 0 16px;line-height:1.5;max-width:640px;}
   .ajustes-resumen{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;}
+  #inicioGastosChart{
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+  }
+  #inicioGastosChart svg{display:block;}
   .ajustes-stat{
     border:1px solid var(--paper-line);border-radius:10px;
     padding:16px;text-align:center;background:var(--paper);
@@ -1059,16 +1065,20 @@
       background:#ffffff;
     }
     .print-sheet{
-      width:auto;
+      width:216mm;
+      height:330mm;
+      padding:10mm;
+      box-sizing:border-box;
       background:#ffffff;
       break-after:page;
       page-break-after:always;
+      overflow:hidden;
     }
     .print-sheet:last-child{
       break-after:auto;
       page-break-after:auto;
     }
-    @page{size:216mm 330mm; margin:10mm;}
+    @page{size:216mm 330mm; margin:0;}
     *{
       -webkit-print-color-adjust:exact !important;
       print-color-adjust:exact !important;
@@ -1880,6 +1890,39 @@
         <button class="btn btn-primary" onclick="guardarNumeracionForzada()">Guardar</button>
         <button class="btn btn-ghost" onclick="quitarNumeracionForzada()">Quitar forzado</button>
         <span class="status-msg" id="ajustesNumStatusMsg"></span>
+      </div>
+      </div>
+    </div>
+
+    <div class="card collapsed" id="cardAjForzarFecha">
+      <div class="card-toggle" onclick="toggleCard('cardAjForzarFecha')">
+        <h2>Forzar fecha</h2>
+        <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
+      <div class="card-body">
+      <p class="ajustes-desc">Corregí la fecha de una Solicitud o Protocolo ya guardado, por si se cargó mal al momento de crearlo.</p>
+      <div class="grid">
+        <div class="field">
+          <label>Tipo</label>
+          <select id="ffTipo" onchange="renderSelectForzarFechaNumero()">
+            <option value="solicitud">Solicitud de Compra</option>
+            <option value="protocolo">Protocolo</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>N°</label>
+          <select id="ffNumero">
+            <option value="">-- Seleccionar --</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Nueva fecha</label>
+          <input type="date" id="ffFecha">
+        </div>
+      </div>
+      <div class="actions" style="margin-top:14px;">
+        <button class="btn btn-primary" onclick="aplicarForzarFecha()">Aplicar nueva fecha</button>
+        <span class="status-msg" id="ffStatusMsg"></span>
       </div>
       </div>
     </div>
@@ -4664,6 +4707,64 @@ async function cargarVistaAjustes(){
     <div class="ajustes-stat"><b>${oficinas.length}</b><span>Oficinas</span></div>
   `;
   renderUsuariosApp();
+  renderSelectForzarFechaNumero();
+}
+
+async function renderSelectForzarFechaNumero(){
+  const tipoEl = document.getElementById('ffTipo');
+  const select = document.getElementById('ffNumero');
+  if(!tipoEl || !select) return;
+  const tipo = tipoEl.value;
+  const datos = tipo === 'protocolo' ? await obtenerProtocolos() : await obtenerTodas();
+  const ordenados = [...datos].sort((a,b) => (b.guardadoEn || '').localeCompare(a.guardadoEn || ''));
+  let opciones = '<option value="">-- Seleccionar --</option>';
+  ordenados.forEach(item => {
+    const referencia = tipo === 'protocolo' ? (item.jefeArea || 'Sin jefe de área') : (item.senor || 'Sin proveedor');
+    const label = `N° ${item.numero || '(sin número)'} — ${referencia}`;
+    opciones += `<option value="${item.id}">${escapeHtml(label)}</option>`;
+  });
+  select.innerHTML = opciones;
+}
+
+async function aplicarForzarFecha(){
+  const statusEl = document.getElementById('ffStatusMsg');
+  const tipo = document.getElementById('ffTipo').value;
+  const id = document.getElementById('ffNumero').value;
+  const fechaISO = document.getElementById('ffFecha').value;
+
+  if(!id){
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'Elegí una solicitud o protocolo de la lista';
+    return;
+  }
+  if(!fechaISO){
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'Elegí una fecha';
+    return;
+  }
+  if(!confirm('¿Confirmás que querés forzar esta fecha? Se va a sobrescribir la fecha actual del registro.')) return;
+
+  const [anioCompleto, mesNum, diaNum] = fechaISO.split('-').map(Number);
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const nuevosDatos = {
+    dia: String(diaNum).padStart(2, '0'),
+    mes: meses[mesNum - 1],
+    anio: String(anioCompleto).slice(-2)
+  };
+
+  const fb = window.__firebase;
+  const coleccion = tipo === 'protocolo' ? 'protocolos' : 'solicitudes';
+  try{
+    await fb.updateDoc(fb.doc(fb.db, coleccion, id), nuevosDatos);
+    statusEl.style.color = 'var(--ok)';
+    statusEl.textContent = 'Fecha actualizada ✓';
+    document.getElementById('ffFecha').value = '';
+    setTimeout(()=>{ statusEl.textContent=''; }, 2500);
+  }catch(e){
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'Error al actualizar la fecha';
+    console.error(e);
+  }
 }
 
 let currentUsuarioAppId = null;
@@ -4878,10 +4979,11 @@ function renderGraficoGastos(datos){
   }
 
   const max = Math.max(...datos.map(d => d.total));
-  const w = 640, h = 230, padTop = 30, padBottom = 34, padSide = 12, gap = 16;
+  const h = 230, padTop = 30, padBottom = 34, padSide = 16, gap = 22;
+  const barW = 46; // ancho fijo y moderado: el gráfico crece a lo ancho en vez de achicar las barras
   const chartH = h - padTop - padBottom;
   const n = datos.length;
-  const barW = (w - padSide * 2 - gap * (n - 1)) / n;
+  const w = padSide * 2 + n * barW + (n - 1) * gap;
 
   let bars = '';
   datos.forEach((d, i) => {
@@ -4897,11 +4999,16 @@ function renderGraficoGastos(datos){
   });
 
   cont.innerHTML = `
-    <svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Gráfico de gastos totales por mes">
+    <svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="Gráfico de gastos totales por mes">
       <line x1="${padSide}" y1="${padTop + chartH}" x2="${w - padSide}" y2="${padTop + chartH}" style="stroke:var(--paper-line);stroke-width:1"></line>
       ${bars}
     </svg>
   `;
+
+  // Apenas se dibuja, nos desplazamos al extremo derecho para mostrar
+  // siempre el mes más reciente; los meses más viejos quedan "empujados"
+  // hacia la izquierda, fuera de la vista, a medida que se agregan más.
+  cont.scrollLeft = cont.scrollWidth;
 }
 
 async function cargarVistaInicio(){
