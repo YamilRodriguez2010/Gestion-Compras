@@ -543,6 +543,19 @@
     text-decoration:none;
     font-style:normal;
   }
+  .badge-pase{
+    display:inline-block;
+    background:var(--slate);
+    color:var(--on-accent);
+    font-size:9px;
+    padding:3px 7px;
+    border-radius:3px;
+    margin-left:6px;
+    font-weight:700;
+    text-decoration:none;
+    font-style:normal;
+    text-transform:none;
+  }
   .hist-info b{font-family:var(--font-display);color:var(--heading);font-size:15px;}
   .hist-info span{display:block;font-size:12px;color:var(--ink-soft);margin-top:3px;}
   .hist-actions{display:flex;gap:8px;}
@@ -748,6 +761,7 @@
   /* Los modales de detalle (Ver) deben quedar por encima de otros modales
      (ej: Reportes) cuando se abren desde adentro de ellos. */
   #modalVerSolicitud, #modalVerProtocolo{z-index:1100;}
+  #confirmModalOverlay{z-index:1200;}
   .modal-box{
     background:var(--surface);
     border-radius:14px;
@@ -1367,6 +1381,25 @@
   </div>
 </div>
 
+<!-- ===== Confirmación personalizada (reemplaza confirm()/prompt() del navegador) ===== -->
+<div class="modal-overlay" id="confirmModalOverlay">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-header">
+      <h3 id="confirmModalTitulo">Confirmar</h3>
+    </div>
+    <div class="modal-body">
+      <p id="confirmModalMensaje" style="white-space:pre-line; margin:0; font-size:14px; line-height:1.5; color:var(--ink);"></p>
+      <div class="field" id="confirmModalInputWrap" style="display:none; margin-top:14px;">
+        <input type="text" id="confirmModalInput">
+      </div>
+      <div class="actions" style="margin-top:22px; justify-content:flex-end;">
+        <button class="btn btn-ghost" id="confirmModalCancelar">Cancelar</button>
+        <button class="btn btn-primary" id="confirmModalAceptar">Confirmar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="appRoot">
 <div class="app">
 
@@ -1478,6 +1511,17 @@
           <div class="badge-field">
             <label>Fecha</label>
             <div class="badge-value" id="fechaBadge">—</div>
+          </div>
+        </div>
+        <div class="grid" style="margin-top:14px;">
+          <div class="field">
+            <label>Pase</label>
+            <select id="fPase">
+              <option value="">-- Sin asignar --</option>
+              <option value="Of. de Certificaciones">Of. de Certificaciones</option>
+              <option value="Of. de Pagos">Of. de Pagos</option>
+              <option value="En proceso">En proceso</option>
+            </select>
           </div>
         </div>
         <input type="hidden" id="fNumero">
@@ -2045,7 +2089,9 @@
         <button class="btn btn-primary btn-icon" onclick="guardarProveedor()" title="Guardar proveedor" aria-label="Guardar proveedor">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
         </button>
-        <button class="btn btn-ghost" onclick="cancelarEdicionProveedor()" title="Cancelar edición">Cancelar edición</button>
+        <button class="btn btn-ghost btn-icon" onclick="cancelarEdicionProveedor()" title="Cancelar edición" aria-label="Cancelar edición">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+        </button>
         <span class="status-msg" id="proveedorStatusMsg"></span>
       </div>
 
@@ -2085,7 +2131,9 @@
         <button class="btn btn-primary btn-icon" onclick="guardarOficina()" title="Guardar oficina" aria-label="Guardar oficina">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
         </button>
-        <button class="btn btn-ghost" onclick="cancelarEdicionOficina()" title="Cancelar edición">Cancelar edición</button>
+        <button class="btn btn-ghost btn-icon" onclick="cancelarEdicionOficina()" title="Cancelar edición" aria-label="Cancelar edición">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+        </button>
         <span class="status-msg" id="oficinaStatusMsg"></span>
       </div>
 
@@ -2392,6 +2440,7 @@ async function nuevaSolicitud(){
   document.getElementById('fDia').value = '';
   document.getElementById('fMes').value = '';
   document.getElementById('fAnio').value = '';
+  document.getElementById('fPase').value = '';
   document.getElementById('fOficina').value = '';
   document.getElementById('fDestino').value = '';
   document.getElementById('fSenor').value = '';
@@ -2443,6 +2492,7 @@ function recolectarDatos(){
     dia: document.getElementById('fDia').value,
     mes: document.getElementById('fMes').value,
     anio: document.getElementById('fAnio').value,
+    pase: document.getElementById('fPase').value,
     oficina: document.getElementById('fOficina').value,
     destino: document.getElementById('fDestino').value,
     senor: document.getElementById('fSenor').value,
@@ -2502,6 +2552,7 @@ function cargarDatos(sol){
   document.getElementById('fDia').value = sol.dia || '';
   document.getElementById('fMes').value = sol.mes || '';
   document.getElementById('fAnio').value = sol.anio || '';
+  document.getElementById('fPase').value = sol.pase || '';
   document.getElementById('fOficina').value = sol.oficina || '';
   document.getElementById('fDestino').value = sol.destino || '';
   document.getElementById('fSenor').value = sol.senor || '';
@@ -2862,6 +2913,9 @@ async function guardarSolicitud(){
       statusEl.textContent = errorItems;
       return;
     }
+    if(!(await confirmarPersonalizado('¿Deseás guardar esta solicitud?'))){
+      return;
+    }
     const esNueva = !currentId;
     if(esNueva){
       const hoy = await obtenerFechaServidor();
@@ -2909,9 +2963,10 @@ async function darDeBajaSolicitud(id){
   const todas = await obtenerTodas();
   const sol = todas.find(s => s.id === id);
   if(!sol) return;
-  if(!confirm('¿Dar de baja esta solicitud? Seguirá en el historial pero marcada como inactiva.')) return;
+  if(!(await confirmarPersonalizado('¿Dar de baja esta solicitud? Seguirá en el historial pero marcada como inactiva.'))) return;
+  const motivo = (await confirmarPersonalizado('Contanos brevemente el motivo de la baja.', { conInput:true, placeholder:'Motivo (opcional)', textoAceptar:'Dar de baja', titulo:'Motivo de la baja' })) || '';
   const fb = window.__firebase;
-  await fb.updateDoc(fb.doc(fb.db, 'solicitudes', id), { estadoBaja: true });
+  await fb.updateDoc(fb.doc(fb.db, 'solicitudes', id), { estadoBaja: true, motivoBaja: motivo.trim() });
 }
 
 async function restaurarSolicitud(id){
@@ -2919,7 +2974,7 @@ async function restaurarSolicitud(id){
   const sol = todas.find(s => s.id === id);
   if(!sol) return;
   const fb = window.__firebase;
-  await fb.updateDoc(fb.doc(fb.db, 'solicitudes', id), { estadoBaja: false });
+  await fb.updateDoc(fb.doc(fb.db, 'solicitudes', id), { estadoBaja: false, motivoBaja: '' });
 }
 
 async function eliminarSolicitud(id){
@@ -2928,7 +2983,7 @@ async function eliminarSolicitud(id){
     alert('La función de eliminar está deshabilitada. Habilitala desde Ajustes > Administración > "Permitir eliminar solicitudes/protocolos".');
     return;
   }
-  if(!confirm('⚠ ¿ELIMINAR permanentemente esta solicitud? Esta acción NO se puede deshacer.')) return;
+  if(!(await confirmarPersonalizado('⚠ ¿ELIMINAR permanentemente esta solicitud? Esta acción NO se puede deshacer.', { peligroso:true, textoAceptar:'Eliminar' }))) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'solicitudes', id));
 }
@@ -2970,6 +3025,7 @@ async function verSolicitud(id){
     <div class="ver-grid">
       <div class="ver-item"><label>N° de Solicitud</label><span>${val(s.numero)}</span></div>
       <div class="ver-item"><label>Fecha</label><span>${(s.dia && s.mes && s.anio) ? escapeHtml(`${s.dia} de ${s.mes} de 20${s.anio}`) : '<span class="vacio">—</span>'}</span></div>
+      <div class="ver-item"><label>Pase</label><span>${val(s.pase)}</span></div>
       <div class="ver-item"><label>Oficina</label><span>${val(s.oficina)}</span></div>
       <div class="ver-item"><label>Destino</label><span>${val(s.destino)}</span></div>
       <div class="ver-item"><label>Proveedor</label><span>${val(s.senor)}</span></div>
@@ -2978,6 +3034,7 @@ async function verSolicitud(id){
       <div class="ver-item"><label>Nota de pedido</label><span>${val(s.notaPedido)}</span></div>
       <div class="ver-item"><label>N° de Factura</label><span>${val(s.nroFactura)}</span></div>
       <div class="ver-item"><label>Importe de Factura</label><span>${s.importeFactura ? '$ ' + escapeHtml(String(s.importeFactura)) : '<span class="vacio">—</span>'}</span></div>
+      ${s.estadoBaja ? `<div class="ver-item" style="grid-column:1/-1;"><label>Motivo de la baja</label><span>${val(s.motivoBaja)}</span></div>` : ''}
     </div>
 
     <div class="table-scroll">
@@ -3290,6 +3347,7 @@ async function renderHistorial(){
       (s.oficina||'').toLowerCase().includes(q) ||
       (s.destino||'').toLowerCase().includes(q) ||
       (s.notaPedido||'').toLowerCase().includes(q) ||
+      (s.pase||'').toLowerCase().includes(q) ||
       fecha.toLowerCase().includes(q);
   }) : todas;
 
@@ -3312,7 +3370,7 @@ async function renderHistorial(){
   list.innerHTML = filtradas2.map(s => `
     <div class="hist-item ${s.estadoBaja ? 'hist-item-baja' : ''}">
       <div class="hist-info">
-        <b>N° ${escapeHtml(s.numero || '(sin número)')}${s.estadoBaja ? ' <span class="badge-baja">Dada de baja</span>' : ''}</b> — ${escapeHtml(s.senor || 'Sin proveedor')}
+        <b>N° ${escapeHtml(s.numero || '(sin número)')}${s.estadoBaja ? ' <span class="badge-baja">Dada de baja</span>' : ''}${s.pase ? ` <span class="badge-pase">${escapeHtml(s.pase)}</span>` : ''}</b> — ${escapeHtml(s.senor || 'Sin proveedor')}
         <span>${escapeHtml(s.dia || '—')} de ${escapeHtml(s.mes || '—')} de 20${escapeHtml(s.anio || '—')} · Total: $ ${fmtMoney(s.total || 0)}</span>
       </div>
       <div class="hist-actions">
@@ -3347,6 +3405,71 @@ function toggleCard(id){
   const card = document.getElementById(id);
   if(!card) return;
   card.classList.toggle('collapsed');
+}
+
+// Reemplaza confirm()/prompt() nativos del navegador por un modal propio,
+// con el mismo estilo que el resto de la app (nada de "Esta página dice...").
+// Uso: await confirmarPersonalizado('Mensaje'); // true/false, como confirm()
+//      await confirmarPersonalizado('Mensaje', { conInput:true }); // string o null, como prompt()
+function confirmarPersonalizado(mensaje, opciones = {}){
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('confirmModalOverlay');
+    const tituloEl = document.getElementById('confirmModalTitulo');
+    const mensajeEl = document.getElementById('confirmModalMensaje');
+    const inputWrap = document.getElementById('confirmModalInputWrap');
+    const input = document.getElementById('confirmModalInput');
+    const btnAceptar = document.getElementById('confirmModalAceptar');
+    const btnCancelar = document.getElementById('confirmModalCancelar');
+
+    tituloEl.textContent = opciones.titulo || (opciones.conInput ? 'Completá el dato' : 'Confirmar');
+    mensajeEl.textContent = mensaje;
+
+    if(opciones.conInput){
+      inputWrap.style.display = 'block';
+      input.value = opciones.valorInicial || '';
+      input.placeholder = opciones.placeholder || '';
+    } else {
+      inputWrap.style.display = 'none';
+      input.value = '';
+    }
+
+    btnAceptar.textContent = opciones.textoAceptar || 'Confirmar';
+    btnAceptar.className = 'btn ' + (opciones.peligroso ? 'btn-ghost' : 'btn-primary');
+    if(opciones.peligroso) btnAceptar.style.color = 'var(--danger)';
+    else btnAceptar.style.color = '';
+
+    function cerrar(){
+      overlay.classList.remove('open');
+      btnAceptar.removeEventListener('click', onAceptar);
+      btnCancelar.removeEventListener('click', onCancelar);
+      overlay.removeEventListener('click', onOverlayClick);
+      input.removeEventListener('keydown', onEnter);
+    }
+    function onAceptar(){
+      const valor = opciones.conInput ? input.value : true;
+      cerrar();
+      resolve(valor);
+    }
+    function onCancelar(){
+      cerrar();
+      resolve(opciones.conInput ? null : false);
+    }
+    function onOverlayClick(e){
+      if(e.target === overlay) onCancelar();
+    }
+    function onEnter(e){
+      if(e.key === 'Enter') onAceptar();
+    }
+
+    btnAceptar.addEventListener('click', onAceptar);
+    btnCancelar.addEventListener('click', onCancelar);
+    overlay.addEventListener('click', onOverlayClick);
+    input.addEventListener('keydown', onEnter);
+
+    overlay.classList.add('open');
+    if(opciones.conInput) setTimeout(()=> input.focus(), 50);
+    else setTimeout(()=> btnAceptar.focus(), 50);
+  });
 }
 
 function switchTab(tab){
@@ -3546,7 +3669,7 @@ function centrarTodosLosNumeros(){
   });
 }
 
-function imprimir(){
+async function imprimir(){
   const statusEl = document.getElementById('statusMsg');
   const faltante = validarCamposObligatoriosSolicitud();
   if(faltante){
@@ -3558,6 +3681,9 @@ function imprimir(){
   if(errorItems){
     statusEl.style.color = 'var(--danger)';
     statusEl.textContent = errorItems;
+    return;
+  }
+  if(!(await confirmarPersonalizado('¿Deseás imprimir esta solicitud?', { textoAceptar:'Imprimir' }))){
     return;
   }
   generarPaginasImpresion();
@@ -3819,7 +3945,7 @@ async function guardarProveedor(){
 }
 
 async function eliminarProveedor(id){
-  if(!confirm('¿Eliminar este proveedor de la lista?')) return;
+  if(!(await confirmarPersonalizado('¿Eliminar este proveedor de la lista?', { peligroso:true, textoAceptar:'Eliminar' }))) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'proveedores', id));
   if(currentProveedorId === id) cancelarEdicionProveedor();
@@ -4046,7 +4172,7 @@ async function guardarOficina(){
 }
 
 async function eliminarOficina(id){
-  if(!confirm('¿Eliminar esta oficina de la lista?')) return;
+  if(!(await confirmarPersonalizado('¿Eliminar esta oficina de la lista?', { peligroso:true, textoAceptar:'Eliminar' }))) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'oficinas', id));
   if(currentOficinaId === id) cancelarEdicionOficina();
@@ -4332,6 +4458,9 @@ async function guardarProtocolo(){
       statusEl.textContent = `Completá el campo obligatorio: ${faltante}`;
       return;
     }
+    if(!(await confirmarPersonalizado('¿Deseás guardar este protocolo?'))){
+      return;
+    }
     const esNuevo = !currentProtocoloId;
     if(esNuevo){
       const hoy = await obtenerFechaServidor();
@@ -4364,7 +4493,7 @@ async function darDeBajaProtocolo(id){
   const todos = await obtenerProtocolos();
   const p = todos.find(x => x.id === id);
   if(!p) return;
-  if(!confirm('¿Dar de baja este protocolo? Seguirá en el historial pero marcado como inactivo.')) return;
+  if(!(await confirmarPersonalizado('¿Dar de baja este protocolo? Seguirá en el historial pero marcado como inactivo.'))) return;
   const fb = window.__firebase;
   await fb.updateDoc(fb.doc(fb.db, 'protocolos', id), { estadoBaja: true });
 }
@@ -4383,7 +4512,7 @@ async function eliminarProtocolo(id){
     alert('La función de eliminar está deshabilitada. Habilitala desde Ajustes > Administración > "Permitir eliminar solicitudes/protocolos".');
     return;
   }
-  if(!confirm('⚠ ¿ELIMINAR permanentemente este protocolo? Esta acción NO se puede deshacer.')) return;
+  if(!(await confirmarPersonalizado('⚠ ¿ELIMINAR permanentemente este protocolo? Esta acción NO se puede deshacer.', { peligroso:true, textoAceptar:'Eliminar' }))) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'protocolos', id));
 }
@@ -4580,7 +4709,10 @@ function construirProtocoloHTML(data){
   </div>`;
 }
 
-function imprimirProtocolo(){
+async function imprimirProtocolo(){
+  if(!(await confirmarPersonalizado('¿Deseás imprimir este protocolo?', { textoAceptar:'Imprimir' }))){
+    return;
+  }
   const data = recolectarDatosProtocolo();
   const container = document.getElementById('printPages');
   container.innerHTML = construirProtocoloHTML(data);
@@ -4689,7 +4821,7 @@ async function importarDatos(event){
   reader.onload = async function(e){
     try{
       const paquete = JSON.parse(e.target.result);
-      if(!confirm('Esto va a REEMPLAZAR los datos actuales (solicitudes, proveedores, oficinas y protocolos) por los del archivo importado. ¿Continuar?')){
+      if(!(await confirmarPersonalizado('Esto va a REEMPLAZAR los datos actuales (solicitudes, proveedores, oficinas y protocolos) por los del archivo importado. ¿Continuar?', { peligroso:true, textoAceptar:'Reemplazar' }))){
         event.target.value = '';
         return;
       }
@@ -4766,7 +4898,7 @@ async function aplicarForzarFecha(){
     statusEl.textContent = 'Elegí una fecha';
     return;
   }
-  if(!confirm('¿Confirmás que querés forzar esta fecha? Se va a sobrescribir la fecha actual del registro.')) return;
+  if(!(await confirmarPersonalizado('¿Confirmás que querés forzar esta fecha? Se va a sobrescribir la fecha actual del registro.', { textoAceptar:'Forzar fecha' }))) return;
 
   const [anioCompleto, mesNum, diaNum] = fechaISO.split('-').map(Number);
   const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -4880,7 +5012,7 @@ async function eliminarUsuarioApp(id){
       return;
     }
   }
-  if(!confirm(`¿Eliminar el usuario "${u.nombre}"?`)) return;
+  if(!(await confirmarPersonalizado(`¿Eliminar el usuario "${u.nombre}"?`, { peligroso:true, textoAceptar:'Eliminar' }))) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'usuarios_app', id));
   if(SESION_ACTUAL && SESION_ACTUAL.id === id){
@@ -4914,7 +5046,10 @@ async function renderUsuariosApp(){
 
 async function borrarTodosLosDatos(){
   const statusEl = document.getElementById('ajustesBorrarStatusMsg');
-  const conf = prompt('Esta acción borra TODAS las solicitudes, protocolos, proveedores y oficinas guardados, sin posibilidad de deshacer.\n\nEscribí BORRAR para confirmar:');
+  const conf = await confirmarPersonalizado(
+    'Esta acción borra TODAS las solicitudes, protocolos, proveedores y oficinas guardados, sin posibilidad de deshacer.\n\nEscribí BORRAR para confirmar:',
+    { conInput:true, placeholder:'Escribí BORRAR', peligroso:true, textoAceptar:'Borrar todo', titulo:'Borrar todos los datos' }
+  );
   if(conf !== 'BORRAR'){
     statusEl.style.color = 'var(--ink-soft)';
     statusEl.textContent = 'Cancelado';
