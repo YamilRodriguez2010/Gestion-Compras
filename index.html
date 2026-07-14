@@ -1994,6 +1994,7 @@
           <label>Rol</label>
           <select id="usRol">
             <option value="usuario">Usuario</option>
+            <option value="invitado">Invitado (solo ve el historial)</option>
             <option value="admin">Administrador</option>
           </select>
         </div>
@@ -2695,18 +2696,34 @@ function mostrarApp(){
   const chip = document.getElementById('userChip');
   if(chip){
     chip.style.display = 'flex';
-    document.getElementById('userChipNombre').textContent = SESION_ACTUAL.nombre + (SESION_ACTUAL.rol === 'admin' ? ' (admin)' : '');
+    const etiquetaRol = SESION_ACTUAL.rol === 'admin' ? ' (admin)' : (SESION_ACTUAL.rol === 'invitado' ? ' (invitado)' : '');
+    document.getElementById('userChipNombre').textContent = SESION_ACTUAL.nombre + etiquetaRol;
   }
   aplicarPermisosSegunRol();
 }
 
 function aplicarPermisosSegunRol(){
-  const esAdmin = !!(SESION_ACTUAL && SESION_ACTUAL.rol === 'admin');
+  const rol = SESION_ACTUAL ? SESION_ACTUAL.rol : null;
+  const esAdmin = rol === 'admin';
+  const esInvitado = rol === 'invitado';
+
   const btnAjustes = document.getElementById('tabAjustesBtn');
   if(btnAjustes) btnAjustes.style.display = esAdmin ? '' : 'none';
+
+  const btnInicio = document.getElementById('tabInicioBtn');
+  const btnForm = document.getElementById('tabFormBtn');
+  const btnProtocolo = document.getElementById('tabProtocoloBtn');
+  if(btnInicio) btnInicio.style.display = esInvitado ? 'none' : '';
+  if(btnForm) btnForm.style.display = esInvitado ? 'none' : '';
+  if(btnProtocolo) btnProtocolo.style.display = esInvitado ? 'none' : '';
+
   const tabAjustes = document.getElementById('tabAjustes');
   if(!esAdmin && tabAjustes && tabAjustes.style.display !== 'none'){
-    switchTab('inicio');
+    switchTab(esInvitado ? 'hist' : 'inicio');
+  } else if(esInvitado){
+    // Un invitado solo puede ver el historial de Solicitudes: lo mandamos
+    // ahí directo apenas entra, sin importar en qué pestaña haya quedado.
+    switchTab('hist');
   }
   actualizarVisibilidadSyncStatus();
 }
@@ -3291,6 +3308,7 @@ async function renderHistorial(){
 
   filtradas2.sort((a,b) => (b.guardadoEn || '').localeCompare(a.guardadoEn || ''));
   const habilitarEliminar = obtenerHabilitarEliminar();
+  const esInvitado = !!(SESION_ACTUAL && SESION_ACTUAL.rol === 'invitado');
   list.innerHTML = filtradas2.map(s => `
     <div class="hist-item ${s.estadoBaja ? 'hist-item-baja' : ''}">
       <div class="hist-info">
@@ -3301,6 +3319,7 @@ async function renderHistorial(){
         <button class="row-icon-btn" onclick="verSolicitud('${s.id}')" title="Ver" aria-label="Ver">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         </button>
+        ${esInvitado ? '' : `
         <button class="row-icon-btn" onclick="cargarDesdeHistorial('${s.id}')" title="Editar" aria-label="Editar">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"></path></svg>
         </button>
@@ -3318,6 +3337,7 @@ async function renderHistorial(){
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
         </button>
         ` : ''}
+        `}
       </div>
     </div>
   `).join('');
@@ -3332,6 +3352,10 @@ function toggleCard(id){
 function switchTab(tab){
   if(tab === 'ajustes' && !(SESION_ACTUAL && SESION_ACTUAL.rol === 'admin')){
     alert('No tenés permisos para acceder a Ajustes.');
+    return;
+  }
+  if(SESION_ACTUAL && SESION_ACTUAL.rol === 'invitado' && tab !== 'hist'){
+    alert('Tu usuario es invitado: solo podés ver el historial de Solicitudes.');
     return;
   }
   document.getElementById('tabInicio').style.display = tab === 'inicio' ? 'block' : 'none';
@@ -4815,7 +4839,8 @@ async function guardarUsuarioApp(){
   if(SESION_ACTUAL && SESION_ACTUAL.id === id){
     SESION_ACTUAL = { id, nombre, usuario, rol };
     try{ localStorage.setItem('sesion-activa', JSON.stringify(SESION_ACTUAL)); }catch(e){}
-    document.getElementById('userChipNombre').textContent = nombre + (rol === 'admin' ? ' (admin)' : '');
+    const etiquetaRol = rol === 'admin' ? ' (admin)' : (rol === 'invitado' ? ' (invitado)' : '');
+    document.getElementById('userChipNombre').textContent = nombre + etiquetaRol;
     aplicarPermisosSegunRol();
   }
   limpiarFormUsuarioApp();
@@ -4877,7 +4902,7 @@ async function renderUsuariosApp(){
     <div class="prov-item">
       <div>
         <b>${escapeHtml(u.nombre)}</b> — ${escapeHtml(u.usuario)}
-        <span style="color:var(--ink-soft); font-size:11px;">(${u.rol === 'admin' ? 'Administrador' : 'Usuario'})</span>
+        <span style="color:var(--ink-soft); font-size:11px;">(${u.rol === 'admin' ? 'Administrador' : (u.rol === 'invitado' ? 'Invitado' : 'Usuario')})</span>
       </div>
       <div style="display:flex; gap:6px;">
         <button class="row-icon-btn" onclick="editarUsuarioApp('${u.id}')" title="Editar">✎</button>
