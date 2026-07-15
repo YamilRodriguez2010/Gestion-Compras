@@ -1408,6 +1408,7 @@
       <h3 id="confirmModalTitulo">Confirmar</h3>
     </div>
     <div class="modal-body">
+      <img class="seal-img" id="confirmModalLogo" alt="Escudo Municipalidad de Villa Ángela" style="display:none; width:56px; height:56px; margin:0 auto 14px;">
       <p id="confirmModalMensaje" style="white-space:pre-line; margin:0; font-size:14px; line-height:1.5; color:var(--ink);"></p>
       <div class="field" id="confirmModalInputWrap" style="display:none; margin-top:14px;">
         <input type="text" id="confirmModalInput">
@@ -1585,11 +1586,11 @@
           </div>
           <div class="field">
             <label>Domicilio</label>
-            <input type="text" id="fCalle" placeholder="Dirección del proveedor">
+            <input type="text" id="fCalle" placeholder="Se completa solo al elegir el proveedor" readonly>
           </div>
           <div class="field">
             <label>Localidad</label>
-            <input type="text" id="fLocalidad" placeholder="Villa Ángela">
+            <input type="text" id="fLocalidad" placeholder="Se completa solo al elegir el proveedor" readonly>
           </div>
         </div>
       </div>
@@ -2943,7 +2944,7 @@ async function guardarSolicitud(){
       statusEl.textContent = errorItems;
       return;
     }
-    if(!(await confirmarPersonalizado('¿Deseás guardar esta solicitud?'))){
+    if(!(await confirmarPersonalizado('¿Deseás guardar esta solicitud?', { conLogo:true }))){
       return;
     }
     const esNueva = !currentId;
@@ -2993,10 +2994,19 @@ async function darDeBajaSolicitud(id){
   const todas = await obtenerTodas();
   const sol = todas.find(s => s.id === id);
   if(!sol) return;
-  if(!(await confirmarPersonalizado('¿Dar de baja esta solicitud? Seguirá en el historial pero marcada como inactiva.'))) return;
-  const motivo = (await confirmarPersonalizado('Contanos brevemente el motivo de la baja.', { conInput:true, placeholder:'Motivo (opcional)', textoAceptar:'Dar de baja', titulo:'Motivo de la baja' })) || '';
+  if(!(await confirmarPersonalizado('¿Dar de baja esta solicitud? Seguirá en el historial pero marcada como inactiva.', { conLogo:true }))) return;
+
+  let motivo = null;
+  while(true){
+    motivo = await confirmarPersonalizado('Contanos el motivo de la baja.', { conInput:true, placeholder:'Motivo de la baja (obligatorio)', textoAceptar:'Dar de baja', titulo:'Motivo de la baja', conLogo:true });
+    if(motivo === null) return; // canceló: no se da de baja la solicitud
+    motivo = motivo.trim();
+    if(motivo) break;
+    await confirmarPersonalizado('El motivo es obligatorio. Ingresá un texto para continuar.', { textoAceptar:'Entendido', conLogo:true });
+  }
+
   const fb = window.__firebase;
-  await fb.updateDoc(fb.doc(fb.db, 'solicitudes', id), { estadoBaja: true, motivoBaja: motivo.trim() });
+  await fb.updateDoc(fb.doc(fb.db, 'solicitudes', id), { estadoBaja: true, motivoBaja: motivo });
 }
 
 async function restaurarSolicitud(id){
@@ -3013,7 +3023,7 @@ async function eliminarSolicitud(id){
     alert('La función de eliminar está deshabilitada. Habilitala desde Ajustes > Administración > "Permitir eliminar solicitudes/protocolos".');
     return;
   }
-  if(!(await confirmarPersonalizado('⚠ ¿ELIMINAR permanentemente esta solicitud? Esta acción NO se puede deshacer.', { peligroso:true, textoAceptar:'Eliminar' }))) return;
+  if(!(await confirmarPersonalizado('⚠ ¿ELIMINAR permanentemente esta solicitud? Esta acción NO se puede deshacer.', { peligroso:true, textoAceptar:'Eliminar', conLogo:true }))) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'solicitudes', id));
 }
@@ -3401,7 +3411,7 @@ async function renderHistorial(){
     <div class="hist-item ${s.estadoBaja ? 'hist-item-baja' : ''}">
       <div class="hist-info">
         <b>N° ${escapeHtml(s.numero || '(sin número)')}${s.estadoBaja ? ' <span class="badge-baja">Dada de baja</span>' : ''}${s.pase ? ` <span class="badge-pase">${escapeHtml(s.pase)}</span>` : ''}</b> — ${escapeHtml(s.senor || 'Sin proveedor')}
-        <span>${escapeHtml(s.dia || '—')} de ${escapeHtml(s.mes || '—')} de 20${escapeHtml(s.anio || '—')} · Total: $ ${fmtMoney(s.total || 0)}</span>
+        <span>${escapeHtml(s.dia || '—')} de ${escapeHtml(s.mes || '—')} de 20${escapeHtml(s.anio || '—')} · Estado: ${s.pase ? escapeHtml(s.pase) : 'Sin asignar'} · Total: $ ${fmtMoney(s.total || 0)}</span>
       </div>
       <div class="hist-actions">
         <button class="row-icon-btn" onclick="verSolicitud('${s.id}')" title="Ver" aria-label="Ver">
@@ -3466,9 +3476,12 @@ function confirmarPersonalizado(mensaje, opciones = {}){
     const input = document.getElementById('confirmModalInput');
     const btnAceptar = document.getElementById('confirmModalAceptar');
     const btnCancelar = document.getElementById('confirmModalCancelar');
+    const logoEl = document.getElementById('confirmModalLogo');
 
     tituloEl.textContent = opciones.titulo || (opciones.conInput ? 'Completá el dato' : 'Confirmar');
     mensajeEl.textContent = mensaje;
+
+    if(logoEl) logoEl.style.display = opciones.conLogo ? 'block' : 'none';
 
     if(opciones.conInput){
       inputWrap.style.display = 'block';
@@ -3729,7 +3742,7 @@ async function imprimir(){
     statusEl.textContent = errorItems;
     return;
   }
-  if(!(await confirmarPersonalizado('¿Deseás imprimir esta solicitud?', { textoAceptar:'Imprimir' }))){
+  if(!(await confirmarPersonalizado('¿Deseás imprimir esta solicitud?', { textoAceptar:'Imprimir', conLogo:true }))){
     return;
   }
   generarPaginasImpresion();
@@ -3991,7 +4004,11 @@ async function guardarProveedor(){
 }
 
 async function eliminarProveedor(id){
-  if(!(await confirmarPersonalizado('¿Eliminar este proveedor de la lista?', { peligroso:true, textoAceptar:'Eliminar' }))) return;
+  if(!obtenerHabilitarEliminar()){
+    alert('La función de eliminar está deshabilitada. Habilitala desde Ajustes > Administración > "Permitir eliminar solicitudes/protocolos".');
+    return;
+  }
+  if(!(await confirmarPersonalizado('¿Eliminar este proveedor de la lista?', { peligroso:true, textoAceptar:'Eliminar', conLogo:true }))) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'proveedores', id));
   if(currentProveedorId === id) cancelarEdicionProveedor();
@@ -4082,9 +4099,11 @@ async function renderProveedores(){
         <button class="row-icon-btn" onclick="editarProveedor('${p.id}')" title="Editar" aria-label="Editar">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"></path></svg>
         </button>
+        ${obtenerHabilitarEliminar() ? `
         <button class="row-icon-btn del" onclick="eliminarProveedor('${p.id}')" title="Eliminar" aria-label="Eliminar">
           <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
         </button>
+        ` : ''}
       </div>
     </div>
   `).join('');
@@ -4218,7 +4237,7 @@ async function guardarOficina(){
 }
 
 async function eliminarOficina(id){
-  if(!(await confirmarPersonalizado('¿Eliminar esta oficina de la lista?', { peligroso:true, textoAceptar:'Eliminar' }))) return;
+  if(!(await confirmarPersonalizado('¿Eliminar esta oficina de la lista?', { peligroso:true, textoAceptar:'Eliminar', conLogo:true }))) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'oficinas', id));
   if(currentOficinaId === id) cancelarEdicionOficina();
@@ -4504,7 +4523,7 @@ async function guardarProtocolo(){
       statusEl.textContent = `Completá el campo obligatorio: ${faltante}`;
       return;
     }
-    if(!(await confirmarPersonalizado('¿Deseás guardar este protocolo?'))){
+    if(!(await confirmarPersonalizado('¿Deseás guardar este protocolo?', { conLogo:true }))){
       return;
     }
     const esNuevo = !currentProtocoloId;
@@ -4539,7 +4558,7 @@ async function darDeBajaProtocolo(id){
   const todos = await obtenerProtocolos();
   const p = todos.find(x => x.id === id);
   if(!p) return;
-  if(!(await confirmarPersonalizado('¿Dar de baja este protocolo? Seguirá en el historial pero marcado como inactivo.'))) return;
+  if(!(await confirmarPersonalizado('¿Dar de baja este protocolo? Seguirá en el historial pero marcado como inactivo.', { conLogo:true }))) return;
   const fb = window.__firebase;
   await fb.updateDoc(fb.doc(fb.db, 'protocolos', id), { estadoBaja: true });
 }
@@ -4558,7 +4577,7 @@ async function eliminarProtocolo(id){
     alert('La función de eliminar está deshabilitada. Habilitala desde Ajustes > Administración > "Permitir eliminar solicitudes/protocolos".');
     return;
   }
-  if(!(await confirmarPersonalizado('⚠ ¿ELIMINAR permanentemente este protocolo? Esta acción NO se puede deshacer.', { peligroso:true, textoAceptar:'Eliminar' }))) return;
+  if(!(await confirmarPersonalizado('⚠ ¿ELIMINAR permanentemente este protocolo? Esta acción NO se puede deshacer.', { peligroso:true, textoAceptar:'Eliminar', conLogo:true }))) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'protocolos', id));
 }
@@ -4756,7 +4775,7 @@ function construirProtocoloHTML(data){
 }
 
 async function imprimirProtocolo(){
-  if(!(await confirmarPersonalizado('¿Deseás imprimir este protocolo?', { textoAceptar:'Imprimir' }))){
+  if(!(await confirmarPersonalizado('¿Deseás imprimir este protocolo?', { textoAceptar:'Imprimir', conLogo:true }))){
     return;
   }
   const data = recolectarDatosProtocolo();
@@ -4867,7 +4886,7 @@ async function importarDatos(event){
   reader.onload = async function(e){
     try{
       const paquete = JSON.parse(e.target.result);
-      if(!(await confirmarPersonalizado('Esto va a REEMPLAZAR los datos actuales (solicitudes, proveedores, oficinas y protocolos) por los del archivo importado. ¿Continuar?', { peligroso:true, textoAceptar:'Reemplazar' }))){
+      if(!(await confirmarPersonalizado('Esto va a REEMPLAZAR los datos actuales (solicitudes, proveedores, oficinas y protocolos) por los del archivo importado. ¿Continuar?', { peligroso:true, textoAceptar:'Reemplazar', conLogo:true }))){
         event.target.value = '';
         return;
       }
@@ -4944,7 +4963,7 @@ async function aplicarForzarFecha(){
     statusEl.textContent = 'Elegí una fecha';
     return;
   }
-  if(!(await confirmarPersonalizado('¿Confirmás que querés forzar esta fecha? Se va a sobrescribir la fecha actual del registro.', { textoAceptar:'Forzar fecha' }))) return;
+  if(!(await confirmarPersonalizado('¿Confirmás que querés forzar esta fecha? Se va a sobrescribir la fecha actual del registro.', { textoAceptar:'Forzar fecha', conLogo:true }))) return;
 
   const [anioCompleto, mesNum, diaNum] = fechaISO.split('-').map(Number);
   const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -5058,7 +5077,7 @@ async function eliminarUsuarioApp(id){
       return;
     }
   }
-  if(!(await confirmarPersonalizado(`¿Eliminar el usuario "${u.nombre}"?`, { peligroso:true, textoAceptar:'Eliminar' }))) return;
+  if(!(await confirmarPersonalizado(`¿Eliminar el usuario "${u.nombre}"?`, { peligroso:true, textoAceptar:'Eliminar', conLogo:true }))) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'usuarios_app', id));
   if(SESION_ACTUAL && SESION_ACTUAL.id === id){
@@ -5094,7 +5113,7 @@ async function borrarTodosLosDatos(){
   const statusEl = document.getElementById('ajustesBorrarStatusMsg');
   const conf = await confirmarPersonalizado(
     'Esta acción borra TODAS las solicitudes, protocolos, proveedores y oficinas guardados, sin posibilidad de deshacer.\n\nEscribí BORRAR para confirmar:',
-    { conInput:true, placeholder:'Escribí BORRAR', peligroso:true, textoAceptar:'Borrar todo', titulo:'Borrar todos los datos' }
+    { conInput:true, placeholder:'Escribí BORRAR', peligroso:true, textoAceptar:'Borrar todo', titulo:'Borrar todos los datos', conLogo:true }
   );
   if(conf !== 'BORRAR'){
     statusEl.style.color = 'var(--ink-soft)';
@@ -5305,6 +5324,7 @@ function iniciarSincronizacionAjustesApp(){
       cargarConfigAdmin();
       if(typeof renderHistorial === 'function') renderHistorial();
       if(typeof renderProtocolos === 'function') renderProtocolos();
+      if(typeof renderProveedores === 'function') renderProveedores();
     },
     (error) => {
       console.error('Error de sincronización con Firestore (ajustes_app):', error);
