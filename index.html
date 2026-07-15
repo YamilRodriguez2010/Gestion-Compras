@@ -260,6 +260,26 @@
     border-color:var(--danger);
     background:var(--error-bg);
   }
+  .search-input-wrap{position:relative;}
+  .search-input-wrap input{padding-right:34px;}
+  .search-clear-btn{
+    position:absolute;
+    right:6px;
+    top:50%;
+    transform:translateY(-50%);
+    width:24px;height:24px;
+    border:none;
+    background:none;
+    color:var(--ink-soft);
+    cursor:pointer;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    padding:0;
+  }
+  .search-clear-btn:hover{background:var(--paper-line);color:var(--ink);}
+  .search-clear-btn.visible{display:flex;}
   #itemsBody tr.fila-incompleta td{
     background:var(--error-bg);
   }
@@ -1683,7 +1703,12 @@
     <div class="card">
       <h2>Historial de solicitudes</h2>
       <div class="field" style="margin-bottom:14px;">
-        <input type="text" id="histBuscar" placeholder="Buscar por N°, proveedor, oficina o fecha..." oninput="renderHistorial()">
+        <div class="search-input-wrap">
+          <input type="text" id="histBuscar" placeholder="Buscar por N°, proveedor, oficina o fecha..." oninput="renderHistorial(); actualizarBotonLimpiarBusqueda('histBuscar');">
+          <button type="button" class="search-clear-btn" id="clear_histBuscar" onclick="limpiarCampoBusqueda('histBuscar', 'renderHistorial')" title="Limpiar búsqueda" aria-label="Limpiar búsqueda">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
       </div>
       <div style="display:flex;gap:10px;margin-bottom:14px;">
         <button class="btn btn-ghost" id="btnFiltroBarajas" onclick="toggleFiltroBarasHistorial()" style="flex:0 0 auto;">
@@ -1876,7 +1901,12 @@
     <div class="card">
       <h2>Protocolos guardados</h2>
       <div class="field" style="margin-bottom:12px;">
-        <input type="text" id="ppBuscar" placeholder="Buscar por N° de legajo o jefe de área..." oninput="renderProtocolos()">
+        <div class="search-input-wrap">
+          <input type="text" id="ppBuscar" placeholder="Buscar por N° de legajo o jefe de área..." oninput="renderProtocolos(); actualizarBotonLimpiarBusqueda('ppBuscar');">
+          <button type="button" class="search-clear-btn" id="clear_ppBuscar" onclick="limpiarCampoBusqueda('ppBuscar', 'renderProtocolos')" title="Limpiar búsqueda" aria-label="Limpiar búsqueda">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
       </div>
       <div style="display:flex;gap:10px;margin-bottom:14px;">
         <button class="btn btn-ghost" id="btnFiltroProtocoloBarajas" onclick="toggleFiltroBarasProtocolos()" style="flex:0 0 auto;">
@@ -3399,6 +3429,22 @@ async function renderHistorial(){
       </div>
     </div>
   `).join('');
+}
+
+function actualizarBotonLimpiarBusqueda(inputId){
+  const input = document.getElementById(inputId);
+  const btn = document.getElementById('clear_' + inputId);
+  if(!input || !btn) return;
+  btn.classList.toggle('visible', input.value.length > 0);
+}
+
+function limpiarCampoBusqueda(inputId, renderFn){
+  const input = document.getElementById(inputId);
+  if(!input) return;
+  input.value = '';
+  actualizarBotonLimpiarBusqueda(inputId);
+  if(typeof window[renderFn] === 'function') window[renderFn]();
+  input.focus();
 }
 
 function toggleCard(id){
