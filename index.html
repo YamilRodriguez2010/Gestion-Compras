@@ -1576,9 +1576,8 @@
           </div>
           <div class="field">
             <label>Proveedor *</label>
-            <select id="fSenor" onchange="autocompletarProveedor()">
-              <option value="">-- Seleccionar proveedor --</option>
-            </select>
+            <input type="text" id="fSenor" list="fSenorOpciones" autocomplete="off" placeholder="Escribí para buscar..." oninput="autocompletarProveedor(); this.classList.remove('input-error')">
+            <datalist id="fSenorOpciones"></datalist>
           </div>
           <div class="field">
             <label>Domicilio</label>
@@ -4081,32 +4080,29 @@ async function usarProveedor(id){
 }
 
 async function renderSelectProveedores(){
-  const select = document.getElementById('fSenor');
-  if(!select) return;
-  const valorActual = select.value;
+  const input = document.getElementById('fSenor');
+  const datalist = document.getElementById('fSenorOpciones');
+  if(!input || !datalist) return;
+  const valorActual = input.value;
   const todos = await obtenerProveedores();
   const nombres = todos.map(p => p.nombre).filter(Boolean).sort((a,b) => a.localeCompare(b));
-  let opciones = '<option value="">-- Seleccionar proveedor --</option>';
-  nombres.forEach(n => { opciones += `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`; });
-  // Si la solicitud que se está editando tiene un proveedor que ya no está
-  // en la lista (por ejemplo, se borró), lo agregamos igual para no perder el dato.
-  if(valorActual && !nombres.includes(valorActual)){
-    opciones += `<option value="${escapeHtml(valorActual)}">${escapeHtml(valorActual)} (no está en la lista)</option>`;
-  }
-  select.innerHTML = opciones;
-  select.value = valorActual;
+  datalist.innerHTML = nombres.map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
+  input.value = valorActual;
 }
 
 async function autocompletarProveedor(){
-  const select = document.getElementById('fSenor');
-  select.classList.remove('input-error');
-  const nombre = select.value;
+  const input = document.getElementById('fSenor');
+  const nombre = input.value.trim();
   if(!nombre){
     document.getElementById('fCalle').value = '';
     document.getElementById('fLocalidad').value = '';
     return;
   }
   const todos = await obtenerProveedores();
+  // Solo autocompletamos Domicilio/Localidad cuando lo escrito coincide
+  // exactamente con un proveedor real (elegido de las sugerencias); mientras
+  // se está escribiendo y todavía no coincide con ninguno, no tocamos esos
+  // campos de solo lectura.
   const p = todos.find(x => x.nombre === nombre);
   if(p){
     document.getElementById('fCalle').value = p.domicilio || '';
