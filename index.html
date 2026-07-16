@@ -1316,7 +1316,7 @@
     import {
       initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
       collection, doc, getDocs, getDoc, setDoc,
-      addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, writeBatch
+      addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, limit, writeBatch
     } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     // Config real del proyecto "compras-control"
@@ -1353,7 +1353,7 @@
     // usarlas desde el script principal (que no es type="module").
     window.__firebase = {
       db, collection, doc, getDocs, getDoc, setDoc,
-      addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, writeBatch
+      addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, limit, writeBatch
     };
 
     // Avisamos cuando Firebase ya está listo, por si el script principal
@@ -1406,6 +1406,7 @@
   <div class="modal-box" style="max-width:420px;">
     <div class="modal-header">
       <h3 id="confirmModalTitulo">Confirmar</h3>
+      <p id="confirmModalSubtitulo" style="display:none; margin:2px 0 0; font-size:11.5px; color:var(--ink-soft); font-weight:400;"></p>
     </div>
     <div class="modal-body">
       <img class="seal-img" id="confirmModalLogo" alt="Escudo Municipalidad de Villa Ángela" style="display:none; width:56px; height:56px; margin:0 auto 14px;">
@@ -1464,11 +1465,6 @@
     <div class="card inicio-hero">
       <h1 class="inicio-titulo">Gestión Compras</h1>
       <p class="inicio-subtitulo">Sistema de Gestión de Solicitudes y Protocolos de Compras</p>
-    </div>
-
-    <div class="card">
-      <h2>Resumen</h2>
-      <div class="ajustes-resumen" id="inicioResumen"></div>
     </div>
 
     <div class="card">
@@ -2056,14 +2052,14 @@
 
     <div class="card collapsed" id="cardAjRegistroCarga">
       <div class="card-toggle" onclick="toggleCard('cardAjRegistroCarga')">
-        <h2>Registro de carga</h2>
+        <h2>Registro de actividad</h2>
         <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
       </div>
       <div class="card-body">
-      <p class="ajustes-desc">Quién cargó cada Solicitud de Compra y cuándo.</p>
+      <p class="ajustes-desc">Quién cargó, editó, dio de baja o eliminó cada Solicitud de Compra, y cuándo.</p>
       <div class="field" style="margin-bottom:10px;">
         <div class="search-input-wrap">
-          <input type="text" id="rcBuscar" placeholder="Buscar por N° o nombre de usuario..." oninput="renderRegistroCarga(); actualizarBotonLimpiarBusqueda('rcBuscar');">
+          <input type="text" id="rcBuscar" placeholder="Buscar por N°, usuario o acción..." oninput="renderRegistroCarga(); actualizarBotonLimpiarBusqueda('rcBuscar');">
           <button type="button" class="search-clear-btn" id="clear_rcBuscar" onclick="limpiarCampoBusqueda('rcBuscar', 'renderRegistroCarga')" title="Limpiar búsqueda" aria-label="Limpiar búsqueda">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
@@ -2977,7 +2973,7 @@ async function guardarSolicitud(){
       statusEl.textContent = errorItems;
       return;
     }
-    if(!(await confirmarPersonalizado('¿Deseás guardar esta solicitud?', { conLogo:true }))){
+    if(!(await confirmarPersonalizado('¿Deseás guardar esta solicitud?', { conLogo:true, institucional:true }))){
       return;
     }
     const esNueva = !currentId;
@@ -3025,6 +3021,7 @@ async function guardarSolicitud(){
     statusEl.style.color = 'var(--ok)';
     statusEl.textContent = 'Guardado ✓ (N° ' + data.numero + ')';
     setTimeout(()=>{ statusEl.textContent=''; }, 2500);
+    registrarAccionSolicitud(data.numero, esNueva ? 'Cargó' : 'Editó');
     // No hace falta llamar a renderHistorial() acá: el listener onSnapshot
     // de arriba se dispara solo apenas Firestore confirma el guardado.
   }catch(e){
@@ -3038,19 +3035,20 @@ async function darDeBajaSolicitud(id){
   const todas = await obtenerTodas();
   const sol = todas.find(s => s.id === id);
   if(!sol) return;
-  if(!(await confirmarPersonalizado('¿Dar de baja esta solicitud? Seguirá en el historial pero marcada como inactiva.', { conLogo:true }))) return;
+  if(!(await confirmarPersonalizado('¿Dar de baja esta solicitud? Seguirá en el historial pero marcada como inactiva.', { conLogo:true, institucional:true }))) return;
 
   let motivo = null;
   while(true){
-    motivo = await confirmarPersonalizado('Contanos el motivo de la baja.', { conInput:true, placeholder:'Motivo de la baja (obligatorio)', textoAceptar:'Dar de baja', titulo:'Motivo de la baja', conLogo:true });
+    motivo = await confirmarPersonalizado('Contanos el motivo de la baja.', { conInput:true, placeholder:'Motivo de la baja (obligatorio)', textoAceptar:'Dar de baja', conLogo:true, institucional:true });
     if(motivo === null) return; // canceló: no se da de baja la solicitud
     motivo = motivo.trim();
     if(motivo) break;
-    await confirmarPersonalizado('El motivo es obligatorio. Ingresá un texto para continuar.', { textoAceptar:'Entendido', conLogo:true });
+    await confirmarPersonalizado('El motivo es obligatorio. Ingresá un texto para continuar.', { textoAceptar:'Entendido', conLogo:true, institucional:true });
   }
 
   const fb = window.__firebase;
   await fb.updateDoc(fb.doc(fb.db, 'solicitudes', id), { estadoBaja: true, motivoBaja: motivo });
+  registrarAccionSolicitud(sol.numero, 'Dio de baja');
 }
 
 async function restaurarSolicitud(id){
@@ -3067,9 +3065,12 @@ async function eliminarSolicitud(id){
     alert('La función de eliminar está deshabilitada. Habilitala desde Ajustes > Administración > "Permitir eliminar solicitudes/protocolos".');
     return;
   }
-  if(!(await confirmarPersonalizado('⚠ ¿ELIMINAR permanentemente esta solicitud? Esta acción NO se puede deshacer.', { peligroso:true, textoAceptar:'Eliminar', conLogo:true }))) return;
+  if(!(await confirmarPersonalizado('⚠ ¿ELIMINAR permanentemente esta solicitud? Esta acción NO se puede deshacer.', { peligroso:true, textoAceptar:'Eliminar', conLogo:true, institucional:true }))) return;
+  const todas = await obtenerTodas();
+  const sol = todas.find(s => s.id === id);
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'solicitudes', id));
+  registrarAccionSolicitud(sol?.numero, 'Eliminó');
 }
 
 async function cargarDesdeHistorial(id){
@@ -3454,7 +3455,7 @@ async function renderHistorial(){
   list.innerHTML = filtradas2.map(s => `
     <div class="hist-item ${s.estadoBaja ? 'hist-item-baja' : ''}">
       <div class="hist-info">
-        <b>N° ${escapeHtml(s.numero || '(sin número)')}${s.estadoBaja ? ' <span class="badge-baja">Dada de baja</span>' : ''}${s.pase ? ` <span class="badge-pase">${escapeHtml(s.pase)}</span>` : ''}</b> — ${escapeHtml(s.senor || 'Sin proveedor')}
+        <b>N° ${escapeHtml(s.numero || '(sin número)')}${s.estadoBaja ? ' <span class="badge-baja">Dada de baja</span>' : ''}</b> — ${escapeHtml(s.senor || 'Sin proveedor')}
         <span>${escapeHtml(s.dia || '—')} de ${escapeHtml(s.mes || '—')} de 20${escapeHtml(s.anio || '—')} · Estado: ${s.pase ? escapeHtml(s.pase) : 'Sin asignar'} · Total: $ ${fmtMoney(s.total || 0)}</span>
       </div>
       <div class="hist-actions">
@@ -3521,8 +3522,16 @@ function confirmarPersonalizado(mensaje, opciones = {}){
     const btnAceptar = document.getElementById('confirmModalAceptar');
     const btnCancelar = document.getElementById('confirmModalCancelar');
     const logoEl = document.getElementById('confirmModalLogo');
+    const subtituloEl = document.getElementById('confirmModalSubtitulo');
 
-    tituloEl.textContent = opciones.titulo || (opciones.conInput ? 'Completá el dato' : 'Confirmar');
+    if(opciones.institucional){
+      tituloEl.textContent = 'Municipalidad de Villa Ángela';
+      subtituloEl.textContent = 'Secretaría de Economía - Depto. de Compras';
+      subtituloEl.style.display = 'block';
+    } else {
+      tituloEl.textContent = opciones.titulo || (opciones.conInput ? 'Completá el dato' : 'Confirmar');
+      subtituloEl.style.display = 'none';
+    }
     mensajeEl.textContent = mensaje;
 
     if(logoEl) logoEl.style.display = opciones.conLogo ? 'block' : 'none';
@@ -3786,7 +3795,7 @@ async function imprimir(){
     statusEl.textContent = errorItems;
     return;
   }
-  if(!(await confirmarPersonalizado('¿Deseás imprimir esta solicitud?', { textoAceptar:'Imprimir', conLogo:true }))){
+  if(!(await confirmarPersonalizado('¿Deseás imprimir esta solicitud?', { textoAceptar:'Imprimir', conLogo:true, institucional:true }))){
     return;
   }
   generarPaginasImpresion();
@@ -4052,7 +4061,7 @@ async function eliminarProveedor(id){
     alert('La función de eliminar está deshabilitada. Habilitala desde Ajustes > Administración > "Permitir eliminar solicitudes/protocolos".');
     return;
   }
-  if(!(await confirmarPersonalizado('¿Eliminar este proveedor de la lista?', { peligroso:true, textoAceptar:'Eliminar', conLogo:true }))) return;
+  if(!(await confirmarPersonalizado('¿Eliminar este proveedor de la lista?', { peligroso:true, textoAceptar:'Eliminar', conLogo:true, institucional:true }))) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'proveedores', id));
   if(currentProveedorId === id) cancelarEdicionProveedor();
@@ -4281,7 +4290,7 @@ async function guardarOficina(){
 }
 
 async function eliminarOficina(id){
-  if(!(await confirmarPersonalizado('¿Eliminar esta oficina de la lista?', { peligroso:true, textoAceptar:'Eliminar', conLogo:true }))) return;
+  if(!(await confirmarPersonalizado('¿Eliminar esta oficina de la lista?', { peligroso:true, textoAceptar:'Eliminar', conLogo:true, institucional:true }))) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'oficinas', id));
   if(currentOficinaId === id) cancelarEdicionOficina();
@@ -4567,7 +4576,7 @@ async function guardarProtocolo(){
       statusEl.textContent = `Completá el campo obligatorio: ${faltante}`;
       return;
     }
-    if(!(await confirmarPersonalizado('¿Deseás guardar este protocolo?', { conLogo:true }))){
+    if(!(await confirmarPersonalizado('¿Deseás guardar este protocolo?', { conLogo:true, institucional:true }))){
       return;
     }
     const esNuevo = !currentProtocoloId;
@@ -4602,7 +4611,7 @@ async function darDeBajaProtocolo(id){
   const todos = await obtenerProtocolos();
   const p = todos.find(x => x.id === id);
   if(!p) return;
-  if(!(await confirmarPersonalizado('¿Dar de baja este protocolo? Seguirá en el historial pero marcado como inactivo.', { conLogo:true }))) return;
+  if(!(await confirmarPersonalizado('¿Dar de baja este protocolo? Seguirá en el historial pero marcado como inactivo.', { conLogo:true, institucional:true }))) return;
   const fb = window.__firebase;
   await fb.updateDoc(fb.doc(fb.db, 'protocolos', id), { estadoBaja: true });
 }
@@ -4621,7 +4630,7 @@ async function eliminarProtocolo(id){
     alert('La función de eliminar está deshabilitada. Habilitala desde Ajustes > Administración > "Permitir eliminar solicitudes/protocolos".');
     return;
   }
-  if(!(await confirmarPersonalizado('⚠ ¿ELIMINAR permanentemente este protocolo? Esta acción NO se puede deshacer.', { peligroso:true, textoAceptar:'Eliminar', conLogo:true }))) return;
+  if(!(await confirmarPersonalizado('⚠ ¿ELIMINAR permanentemente este protocolo? Esta acción NO se puede deshacer.', { peligroso:true, textoAceptar:'Eliminar', conLogo:true, institucional:true }))) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'protocolos', id));
 }
@@ -4819,7 +4828,7 @@ function construirProtocoloHTML(data){
 }
 
 async function imprimirProtocolo(){
-  if(!(await confirmarPersonalizado('¿Deseás imprimir este protocolo?', { textoAceptar:'Imprimir', conLogo:true }))){
+  if(!(await confirmarPersonalizado('¿Deseás imprimir este protocolo?', { textoAceptar:'Imprimir', conLogo:true, institucional:true }))){
     return;
   }
   const data = recolectarDatosProtocolo();
@@ -4980,32 +4989,39 @@ async function renderRegistroCarga(){
   const cont = document.getElementById('listaRegistroCarga');
   if(!cont) return;
   const q = (document.getElementById('rcBuscar')?.value || '').trim().toLowerCase();
-  const todas = await obtenerTodas();
+  const registros = await obtenerRegistroActividad();
 
-  let filtradas = todas.filter(s => s.creadoEn); // solo las que tienen registro de carga
+  let filtrados = registros;
   if(q){
-    filtradas = filtradas.filter(s =>
-      (s.numero || '').toLowerCase().includes(q) ||
-      (s.creadoPorNombre || '').toLowerCase().includes(q)
+    filtrados = filtrados.filter(r =>
+      (r.numero || '').toLowerCase().includes(q) ||
+      (r.usuarioNombre || '').toLowerCase().includes(q) ||
+      (r.accion || '').toLowerCase().includes(q)
     );
   }
-  filtradas.sort((a, b) => (b.creadoEn || '').localeCompare(a.creadoEn || ''));
 
-  if(filtradas.length === 0){
-    cont.innerHTML = '<div class="empty-state">No hay registros de carga todavía.</div>';
+  if(filtrados.length === 0){
+    cont.innerHTML = '<div class="empty-state">No hay registros de actividad todavía.</div>';
     return;
   }
 
-  cont.innerHTML = filtradas.map(s => {
-    const fecha = new Date(s.creadoEn);
+  const colorAccion = (accion) => {
+    if(accion === 'Eliminó') return 'var(--danger)';
+    if(accion === 'Dio de baja') return 'var(--gold-deep)';
+    if(accion === 'Cargó') return 'var(--ok)';
+    return 'var(--ink-soft)'; // Editó u otras
+  };
+
+  cont.innerHTML = filtrados.map(r => {
+    const fecha = new Date(r.fecha);
     const fechaTexto = isNaN(fecha.getTime())
       ? '—'
       : fecha.toLocaleString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
     return `
       <div class="prov-item">
         <div class="prov-info">
-          <b>N° ${escapeHtml(s.numero || '(sin número)')}</b>
-          <span>Cargada por: ${escapeHtml(s.creadoPorNombre || 'Desconocido')}</span>
+          <b>N° ${escapeHtml(r.numero || '(sin número)')} — <span style="color:${colorAccion(r.accion)};">${escapeHtml(r.accion || '')}</span></b>
+          <span>Usuario: ${escapeHtml(r.usuarioNombre || 'Desconocido')}</span>
           <span>Fecha y hora: ${fechaTexto}</span>
         </div>
       </div>
@@ -5321,15 +5337,6 @@ function renderGraficoGastos(datos){
 async function cargarVistaInicio(){
   const solicitudes = await obtenerTodas();
   const protocolos = await obtenerProtocolos();
-  const proveedores = await obtenerProveedores();
-  const oficinas = await obtenerOficinas();
-
-  document.getElementById('inicioResumen').innerHTML = `
-    <div class="ajustes-stat"><b>${solicitudes.length}</b><span>Solicitudes</span></div>
-    <div class="ajustes-stat"><b>${protocolos.length}</b><span>Protocolos</span></div>
-    <div class="ajustes-stat"><b>${proveedores.length}</b><span>Proveedores</span></div>
-    <div class="ajustes-stat"><b>${oficinas.length}</b><span>Oficinas</span></div>
-  `;
 
   construirGraficoGastosPorMes(solicitudes);
 
@@ -5415,6 +5422,64 @@ function iniciarSincronizacionAjustesApp(){
 }
 if(window.__firebase){ iniciarSincronizacionAjustesApp(); }
 else { window.addEventListener('firebase-ready', iniciarSincronizacionAjustesApp, { once:true }); }
+
+// ---- Registro de actividad: quién cargó, editó, dio de baja o eliminó cada
+// solicitud. Es una colección aparte (no un campo dentro de la solicitud)
+// porque una solicitud ELIMINADA ya no existe para poder consultarla, pero
+// el registro de que existió y quién la borró debe conservarse igual. ----
+const REGISTRO_ACTIVIDAD_KEY = 'registro-actividad-data';
+let REGISTRO_ACTIVIDAD_CACHE = null;
+
+function iniciarSincronizacionRegistroActividad(){
+  const fb = window.__firebase;
+  const q = fb.query(
+    fb.collection(fb.db, 'registro_actividad'),
+    fb.orderBy('fecha', 'desc'),
+    fb.limit(300)
+  );
+  fb.onSnapshot(
+    q,
+    (snapshot) => {
+      REGISTRO_ACTIVIDAD_CACHE = snapshot.docs.map(d => d.data());
+      try{ localStorage.setItem(REGISTRO_ACTIVIDAD_KEY, JSON.stringify(REGISTRO_ACTIVIDAD_CACHE)); }catch(e){}
+      if(typeof renderRegistroCarga === 'function') renderRegistroCarga();
+    },
+    (error) => {
+      console.error('Error de sincronización con Firestore (registro_actividad):', error);
+    }
+  );
+}
+if(window.__firebase){ iniciarSincronizacionRegistroActividad(); }
+else { window.addEventListener('firebase-ready', iniciarSincronizacionRegistroActividad, { once:true }); }
+
+async function obtenerRegistroActividad(){
+  if(REGISTRO_ACTIVIDAD_CACHE !== null) return REGISTRO_ACTIVIDAD_CACHE;
+  try{
+    const raw = localStorage.getItem(REGISTRO_ACTIVIDAD_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    return [];
+  }
+}
+
+// Deja constancia de una acción sobre una solicitud (Cargó / Editó / Dio de
+// baja / Eliminó). No bloquea el flujo principal si falla: es un registro
+// informativo, no debería impedir que el usuario pueda seguir trabajando.
+async function registrarAccionSolicitud(numero, accion){
+  try{
+    const fb = window.__firebase;
+    await fb.addDoc(fb.collection(fb.db, 'registro_actividad'), {
+      entidad: 'solicitud',
+      numero: numero || '(sin número)',
+      accion,
+      usuarioNombre: SESION_ACTUAL ? SESION_ACTUAL.nombre : 'Desconocido',
+      usuarioId: SESION_ACTUAL ? SESION_ACTUAL.id : null,
+      fecha: new Date().toISOString()
+    });
+  }catch(e){
+    console.error('No se pudo registrar la actividad:', e);
+  }
+}
 
 function obtenerHabilitarEliminar(){
   if(AJUSTES_APP_CACHE !== null) return !!AJUSTES_APP_CACHE.habilitarEliminar;
