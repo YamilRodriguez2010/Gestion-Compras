@@ -1758,6 +1758,17 @@
                 <div class="badge-value" id="ppFechaBadge">—</div>
               </div>
             </div>
+            <div class="grid" style="margin-top:14px;">
+              <div class="field">
+                <label>Estado</label>
+                <select id="ppEstado">
+                  <option value="">-- Sin asignar --</option>
+                  <option value="Aprobado">Aprobado</option>
+                  <option value="Denegado">Denegado</option>
+                  <option value="En proceso">En proceso</option>
+                </select>
+              </div>
+            </div>
             <input type="hidden" id="ppNumero">
             <input type="hidden" id="ppDia">
             <input type="hidden" id="ppMes">
@@ -4533,6 +4544,7 @@ function validarCamposObligatoriosProtocolo(){
 async function nuevoProtocolo(){
   currentProtocoloId = null;
   document.getElementById('ppJefeArea').value = '';
+  document.getElementById('ppEstado').value = '';
   document.getElementById('ppSolicita').value = '';
   document.getElementById('ppDestinado').value = '';
   document.getElementById('ppLugar').value = '';
@@ -4571,6 +4583,7 @@ function recolectarDatosProtocolo(){
     dia: document.getElementById('ppDia').value,
     mes: document.getElementById('ppMes').value,
     anio: document.getElementById('ppAnio').value,
+    estado: document.getElementById('ppEstado').value,
     jefeArea: document.getElementById('ppJefeArea').value,
     solicita: document.getElementById('ppSolicita').value,
     destinado: document.getElementById('ppDestinado').value,
@@ -4595,6 +4608,7 @@ function cargarDatosProtocolo(p){
   document.getElementById('ppDia').value = p.dia || '';
   document.getElementById('ppMes').value = p.mes || '';
   document.getElementById('ppAnio').value = p.anio || '';
+  document.getElementById('ppEstado').value = p.estado || '';
   document.getElementById('ppJefeArea').value = p.jefeArea || '';
   document.getElementById('ppSolicita').value = p.solicita || '';
   document.getElementById('ppDestinado').value = p.destinado || '';
@@ -4699,6 +4713,7 @@ async function verProtocolo(id){
     <div class="ver-grid">
       <div class="ver-item"><label>N° de Legajo</label><span>${val(p.numero)}</span></div>
       <div class="ver-item"><label>Fecha</label><span>${(p.dia && p.mes && p.anio) ? escapeHtml(`${p.dia} de ${p.mes} de 20${p.anio}`) : '<span class="vacio">—</span>'}</span></div>
+      <div class="ver-item"><label>Estado</label><span>${val(p.estado)}</span></div>
       <div class="ver-item"><label>Jefe de Área</label><span>${val(p.jefeArea)}</span></div>
       <div class="ver-item"><label>Solicita</label><span>${val(p.solicita)}</span></div>
       <div class="ver-item"><label>Destinado a</label><span>${val(p.destinado)}</span></div>
@@ -4738,7 +4753,8 @@ async function renderProtocolos(){
   const q = (document.getElementById('ppBuscar').value || '').trim().toLowerCase();
   const filtrados = q ? todos.filter(p =>
     String(p.numero||'').toLowerCase().includes(q) ||
-    (p.jefeArea||'').toLowerCase().includes(q)
+    (p.jefeArea||'').toLowerCase().includes(q) ||
+    (p.estado||'').toLowerCase().includes(q)
   ) : todos;
 
   if(todos.length === 0){
@@ -4764,7 +4780,7 @@ async function renderProtocolos(){
     <div class="hist-item ${p.estadoBaja ? 'hist-item-baja' : ''}">
       <div class="hist-info">
         <b>N° ${escapeHtml(p.numero || '(sin número)')}${p.estadoBaja ? ' <span class="badge-baja">Dada de baja</span>' : ''}</b> — ${escapeHtml(p.jefeArea || 'Sin jefe de área')}
-        <span>${escapeHtml(p.dia || '—')} de ${escapeHtml(p.mes || '—')} de 20${escapeHtml(p.anio || '—')}</span>
+        <span>${escapeHtml(p.dia || '—')} de ${escapeHtml(p.mes || '—')} de 20${escapeHtml(p.anio || '—')} · Estado: ${p.estado ? escapeHtml(p.estado) : 'Sin asignar'}</span>
       </div>
       <div class="hist-actions">
         <button class="row-icon-btn" onclick="verProtocolo('${p.id}')" title="Ver" aria-label="Ver">
