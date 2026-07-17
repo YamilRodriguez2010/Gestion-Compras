@@ -823,6 +823,21 @@
   .ver-total b{font-size:20px;color:var(--heading);}
   .ver-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid var(--paper-line);}
 
+  .actividad-row{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:8px 10px;
+    border-bottom:1px solid var(--paper-line);
+    font-size:12.5px;
+  }
+  .actividad-row:last-child{border-bottom:none;}
+  .actividad-num{font-weight:600;color:var(--heading);flex:0 0 auto;white-space:nowrap;}
+  .actividad-badge{
+    font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:999px;
+    color:#fff;white-space:nowrap;flex:0 0 auto;text-transform:uppercase;letter-spacing:0.02em;
+  }
+  .actividad-usuario{flex:1;min-width:90px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .actividad-fecha{flex:0 0 auto;color:var(--ink-soft);white-space:nowrap;font-size:11.5px;}
+
   .prov-item{
     display:flex;justify-content:space-between;align-items:center;
     border:1px solid var(--paper-line);border-radius:9px;
@@ -2063,15 +2078,21 @@
       </div>
       <div class="card-body">
       <p class="ajustes-desc">Quién cargó, editó, dio de baja o eliminó cada Solicitud de Compra, y cuándo.</p>
-      <div class="field" style="margin-bottom:10px;">
-        <div class="search-input-wrap">
-          <input type="text" id="rcBuscar" placeholder="Buscar por N°, usuario o acción..." oninput="renderRegistroCarga(); actualizarBotonLimpiarBusqueda('rcBuscar');">
-          <button type="button" class="search-clear-btn" id="clear_rcBuscar" onclick="limpiarCampoBusqueda('rcBuscar', 'renderRegistroCarga')" title="Limpiar búsqueda" aria-label="Limpiar búsqueda">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
+      <div style="display:flex; gap:8px; align-items:flex-start; margin-bottom:10px;">
+        <div class="field" style="flex:1; margin-bottom:0;">
+          <div class="search-input-wrap">
+            <input type="text" id="rcBuscar" placeholder="Buscar por N°, usuario o acción..." oninput="renderRegistroCarga(); actualizarBotonLimpiarBusqueda('rcBuscar');">
+            <button type="button" class="search-clear-btn" id="clear_rcBuscar" onclick="limpiarCampoBusqueda('rcBuscar', 'renderRegistroCarga')" title="Limpiar búsqueda" aria-label="Limpiar búsqueda">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
         </div>
+        <button type="button" class="btn btn-ghost btn-icon" onclick="limpiarRegistroActividad()" title="Limpiar registros" aria-label="Limpiar registros" style="flex:0 0 auto;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+        </button>
       </div>
       <div id="listaRegistroCarga"></div>
+      <span class="status-msg" id="rcStatusMsg"></span>
       </div>
     </div>
 
@@ -5012,21 +5033,21 @@ async function renderRegistroCarga(){
     return 'var(--ink-soft)'; // Editó u otras
   };
 
-  cont.innerHTML = filtrados.map(r => {
+  cont.innerHTML = `<div class="prov-item" style="flex-direction:column;padding:0;overflow:hidden;">` +
+    filtrados.map(r => {
     const fecha = new Date(r.fecha);
     const fechaTexto = isNaN(fecha.getTime())
       ? '—'
       : fecha.toLocaleString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
     return `
-      <div class="prov-item">
-        <div class="prov-info">
-          <b>N° ${escapeHtml(r.numero || '(sin número)')} — <span style="color:${colorAccion(r.accion)};">${escapeHtml(r.accion || '')}</span></b>
-          <span>Usuario: ${escapeHtml(r.usuarioNombre || 'Desconocido')}</span>
-          <span>Fecha y hora: ${fechaTexto}</span>
-        </div>
+      <div class="actividad-row">
+        <span class="actividad-num">N° ${escapeHtml(r.numero || '(sin número)')}</span>
+        <span class="actividad-badge" style="background:${colorAccion(r.accion)};">${escapeHtml(r.accion || '')}</span>
+        <span class="actividad-usuario">${escapeHtml(r.usuarioNombre || 'Desconocido')}</span>
+        <span class="actividad-fecha">${fechaTexto}</span>
       </div>
     `;
-  }).join('');
+  }).join('') + `</div>`;
 }
 
 async function renderSelectForzarFechaNumero(){
@@ -5459,6 +5480,25 @@ async function obtenerRegistroActividad(){
     return raw ? JSON.parse(raw) : [];
   }catch(e){
     return [];
+  }
+}
+
+async function limpiarRegistroActividad(){
+  const statusEl = document.getElementById('rcStatusMsg');
+  if(!(await confirmarPersonalizado('¿Borrar todo el registro de actividad? Esta acción NO se puede deshacer.', { peligroso:true, textoAceptar:'Limpiar', conLogo:true, institucional:true }))) return;
+  try{
+    await reemplazarColeccionFirestore('registro_actividad', []);
+    if(statusEl){
+      statusEl.style.color = 'var(--ok)';
+      statusEl.textContent = 'Registro de actividad borrado ✓';
+      setTimeout(()=>{ statusEl.textContent=''; }, 2500);
+    }
+  }catch(e){
+    console.error('No se pudo limpiar el registro de actividad:', e);
+    if(statusEl){
+      statusEl.style.color = 'var(--danger)';
+      statusEl.textContent = 'Error al borrar el registro';
+    }
   }
 }
 
