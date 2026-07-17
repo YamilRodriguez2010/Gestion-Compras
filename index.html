@@ -835,7 +835,7 @@
     font-size:9.5px;font-weight:700;padding:2px 8px;border-radius:999px;
     color:#fff;white-space:nowrap;flex:0 0 auto;text-transform:uppercase;letter-spacing:0.02em;
   }
-  .actividad-usuario{flex:1;min-width:90px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .actividad-usuario{flex:0 0 auto; max-width:220px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
   .actividad-fecha{flex:0 0 auto;color:var(--ink-soft);white-space:nowrap;font-size:11.5px;}
 
   .prov-item{
@@ -1729,8 +1729,8 @@
         </div>
       </div>
       <div style="display:flex;gap:10px;margin-bottom:14px;">
-        <button class="btn btn-ghost" id="btnFiltroBarajas" onclick="toggleFiltroBarasHistorial()" style="flex:0 0 auto;">
-          Mostrar dadas de baja
+        <button class="btn btn-ghost btn-icon" id="btnFiltroBarajas" onclick="toggleFiltroBarasHistorial()" title="Mostrar dadas de baja" aria-label="Mostrar dadas de baja" style="flex:0 0 auto;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         </button>
       </div>
       <div class="hist-list" id="histList"></div>
@@ -1927,8 +1927,8 @@
         </div>
       </div>
       <div style="display:flex;gap:10px;margin-bottom:14px;">
-        <button class="btn btn-ghost" id="btnFiltroProtocoloBarajas" onclick="toggleFiltroBarasProtocolos()" style="flex:0 0 auto;">
-          Mostrar dadas de baja
+        <button class="btn btn-ghost btn-icon" id="btnFiltroProtocoloBarajas" onclick="toggleFiltroBarasProtocolos()" title="Mostrar dadas de baja" aria-label="Mostrar dadas de baja" style="flex:0 0 auto;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         </button>
       </div>
       <div class="hist-list" id="listaProtocolos"></div>
@@ -3033,8 +3033,10 @@ async function guardarSolicitud(){
       const duplicada = await existeFacturaDuplicada(data.nroFactura, data.senor, currentId);
       if(duplicada){
         statusEl.style.color = 'var(--danger)';
-        statusEl.textContent = `Ya existe la factura N° ${data.nroFactura} para ${data.senor} (Solicitud N° ${duplicada.numero})`;
+        statusEl.textContent = `Ya existe la factura N° ${data.nroFactura} para ${data.senor} (Solicitud N° ${duplicada.numero}). Se limpió el campo N° de Factura.`;
+        document.getElementById('fNroFactura').value = '';
         document.getElementById('fNroFactura').classList.add('input-error');
+        document.getElementById('facturaWarning').classList.remove('visible');
         return;
       }
     }
@@ -3227,12 +3229,18 @@ function toggleFiltroBarasHistorial(){
 function actualizarBtnFiltroBarasHistorial(){
   const btn = document.getElementById('btnFiltroBarajas');
   if(!btn) return;
+  const iconoOjo = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+  const iconoOjoTachado = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.6 18.6 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a18.6 18.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
   if(mostrarBarasHistorialSolicitudes){
-    btn.textContent = 'Ocultasr dadas de baja';
+    btn.innerHTML = iconoOjoTachado;
+    btn.title = 'Ocultar dadas de baja';
+    btn.setAttribute('aria-label', 'Ocultar dadas de baja');
     btn.classList.add('btn-primary');
     btn.classList.remove('btn-ghost');
   } else {
-    btn.textContent = 'Mostrar dadas de baja';
+    btn.innerHTML = iconoOjo;
+    btn.title = 'Mostrar dadas de baja';
+    btn.setAttribute('aria-label', 'Mostrar dadas de baja');
     btn.classList.remove('btn-primary');
     btn.classList.add('btn-ghost');
   }
@@ -3247,12 +3255,18 @@ function toggleFiltroBarasProtocolos(){
 function actualizarBtnFiltroBarasProtocolos(){
   const btn = document.getElementById('btnFiltroProtocoloBarajas');
   if(!btn) return;
+  const iconoOjo = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+  const iconoOjoTachado = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.6 18.6 0 0 1 5.06-5.94M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a18.6 18.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
   if(mostrarBarasHistorialProtocolos){
-    btn.textContent = 'Ocultar dadas de baja';
+    btn.innerHTML = iconoOjoTachado;
+    btn.title = 'Ocultar dadas de baja';
+    btn.setAttribute('aria-label', 'Ocultar dadas de baja');
     btn.classList.add('btn-primary');
     btn.classList.remove('btn-ghost');
   } else {
-    btn.textContent = 'Mostrar dadas de baja';
+    btn.innerHTML = iconoOjo;
+    btn.title = 'Mostrar dadas de baja';
+    btn.setAttribute('aria-label', 'Mostrar dadas de baja');
     btn.classList.remove('btn-primary');
     btn.classList.add('btn-ghost');
   }
@@ -3734,7 +3748,7 @@ function construirPaginaHTML(data, itemsPagina, numeroPagina, totalPagina, dupli
 
       <div class="sheet-son-row">
         <div class="son-left">SON PESOS : <span>${escapeHtml(sonPesosTxt)}</span></div>
-        <div class="son-box">$ <span>${fmtMoney(totalPagina)}</span></div>
+        <div class="son-box">$ <span>${totalPagina > 0 ? fmtMoney(totalPagina) : ''}</span></div>
       </div>
 
       <table class="sheet-partidas-table">
@@ -3776,20 +3790,17 @@ function generarPaginasImpresion(){
 
   const subtotalGeneral = data.items.reduce((s, it) => s + calcularTotalConDescuento(it.cant, it.unit, it.descValor, it.descTipo), 0);
   const descuentoGeneralMonto = calcularDescuentoGeneral(subtotalGeneral, data.descuentoGeneralValor, data.descuentoGeneralTipo);
+  const totalCompleto = subtotalGeneral - descuentoGeneralMonto;
 
-  const parsedNum = parsearNumeroSolicitud(data.numero);
   const container = document.getElementById('printPages');
   container.innerHTML = '';
 
   chunks.forEach((itemsPagina, idx) => {
-    let numeroPagina;
-    if(parsedNum.n !== null && parsedNum.anio){
-      numeroPagina = formatearNumeroSolicitud(parsedNum.n + idx, parsedNum.anio);
-    } else {
-      numeroPagina = chunks.length > 1 ? `${data.numero || ''} (${idx+1})` : (data.numero || '');
-    }
-    let totalPagina = itemsPagina.reduce((s, it) => s + calcularTotalConDescuento(it.cant, it.unit, it.descValor, it.descTipo), 0);
-    if(idx === chunks.length - 1) totalPagina -= descuentoGeneralMonto;
+    // Todas las hojas de una misma carga comparten el mismo N° de solicitud.
+    const numeroPagina = data.numero || '';
+    // Solo la última hoja muestra un total, y es el total combinado de
+    // todos los ítems de todas las hojas (no solo el de esa hoja).
+    const totalPagina = (idx === chunks.length - 1) ? totalCompleto : 0;
 
     container.insertAdjacentHTML('beforeend', construirPaginaHTML(data, itemsPagina, numeroPagina, totalPagina, false));
     container.insertAdjacentHTML('beforeend', construirPaginaHTML(data, itemsPagina, numeroPagina, totalPagina, true));
@@ -3822,6 +3833,19 @@ async function imprimir(){
     statusEl.style.color = 'var(--danger)';
     statusEl.textContent = errorItems;
     return;
+  }
+  const nro = document.getElementById('fNroFactura').value.trim();
+  const prov = document.getElementById('fSenor').value.trim();
+  if(nro && prov){
+    const duplicada = await existeFacturaDuplicada(nro, prov, currentId);
+    if(duplicada){
+      statusEl.style.color = 'var(--danger)';
+      statusEl.textContent = `Ya existe la factura N° ${nro} para ${prov} (Solicitud N° ${duplicada.numero}). Se limpió el campo N° de Factura.`;
+      document.getElementById('fNroFactura').value = '';
+      document.getElementById('fNroFactura').classList.add('input-error');
+      document.getElementById('facturaWarning').classList.remove('visible');
+      return;
+    }
   }
   if(!(await confirmarPersonalizado('¿Deseás imprimir esta solicitud?', { textoAceptar:'Imprimir', conLogo:true, institucional:true }))){
     return;
@@ -3861,11 +3885,11 @@ async function exportarSolicitudesPDF(){
 
     const subtotalGeneral = (data.items||[]).reduce((s, it) => s + calcularTotalConDescuento(it.cant, it.unit, it.descValor, it.descTipo), 0);
     const descuentoGeneralMonto = calcularDescuentoGeneral(subtotalGeneral, data.descuentoGeneralValor, data.descuentoGeneralTipo);
+    const totalCompleto = subtotalGeneral - descuentoGeneralMonto;
 
     chunks.forEach((itemsPagina, idx) => {
-      const numeroPagina = chunks.length > 1 ? `${data.numero || ''} (${idx+1}/${chunks.length})` : (data.numero || '');
-      let totalPagina = itemsPagina.reduce((s, it) => s + calcularTotalConDescuento(it.cant, it.unit, it.descValor, it.descTipo), 0);
-      if(idx === chunks.length - 1) totalPagina -= descuentoGeneralMonto;
+      const numeroPagina = data.numero || '';
+      const totalPagina = (idx === chunks.length - 1) ? totalCompleto : 0;
       container.insertAdjacentHTML('beforeend', construirPaginaHTML(data, itemsPagina, numeroPagina, totalPagina, false));
     });
   });
@@ -5033,7 +5057,7 @@ async function renderRegistroCarga(){
     return 'var(--ink-soft)'; // Editó u otras
   };
 
-  cont.innerHTML = `<div class="prov-item" style="flex-direction:column;padding:0;overflow:hidden;">` +
+  cont.innerHTML = `<div class="prov-item" style="flex-direction:column;align-items:stretch;padding:0;overflow:hidden;">` +
     filtrados.map(r => {
     const fecha = new Date(r.fecha);
     const fechaTexto = isNaN(fecha.getTime())
