@@ -2136,7 +2136,9 @@
       </div>
       <div class="actions" style="margin-top:14px;">
         <button class="btn btn-primary" onclick="guardarUsuarioApp()">Guardar usuario</button>
-        <button class="btn btn-ghost" onclick="limpiarFormUsuarioApp()">Cancelar edición</button>
+        <button class="btn btn-ghost btn-icon" onclick="limpiarFormUsuarioApp()" title="Cancelar edición" aria-label="Cancelar edición">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+        </button>
         <span class="status-msg" id="usuariosStatusMsg"></span>
       </div>
       <div id="listaUsuariosApp" style="margin-top:16px;"></div>
@@ -5036,7 +5038,7 @@ async function importarDatos(event){
   reader.onload = async function(e){
     try{
       const paquete = JSON.parse(e.target.result);
-      if(!(await confirmarPersonalizado('Esto va a REEMPLAZAR los datos actuales (solicitudes, proveedores, oficinas y protocolos) por los del archivo importado. ¿Continuar?', { peligroso:true, textoAceptar:'Reemplazar', conLogo:true }))){
+      if(!(await confirmarPersonalizado('Esto va a REEMPLAZAR los datos actuales (solicitudes, proveedores, oficinas y protocolos) por los del archivo importado. ¿Continuar?', { peligroso:true, textoAceptar:'Reemplazar', conLogo:true, institucional:true }))){
         event.target.value = '';
         return;
       }
@@ -5158,7 +5160,7 @@ async function aplicarForzarFecha(){
     statusEl.textContent = 'Elegí una fecha';
     return;
   }
-  if(!(await confirmarPersonalizado('¿Confirmás que querés forzar esta fecha? Se va a sobrescribir la fecha actual del registro.', { textoAceptar:'Forzar fecha', conLogo:true }))) return;
+  if(!(await confirmarPersonalizado('¿Confirmás que querés forzar esta fecha? Se va a sobrescribir la fecha actual del registro.', { textoAceptar:'Forzar fecha', conLogo:true, institucional:true }))) return;
 
   const [anioCompleto, mesNum, diaNum] = fechaISO.split('-').map(Number);
   const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
@@ -5272,7 +5274,7 @@ async function eliminarUsuarioApp(id){
       return;
     }
   }
-  if(!(await confirmarPersonalizado(`¿Eliminar el usuario "${u.nombre}"?`, { peligroso:true, textoAceptar:'Eliminar', conLogo:true }))) return;
+  if(!(await confirmarPersonalizado(`¿Eliminar el usuario "${u.nombre}"?`, { peligroso:true, textoAceptar:'Eliminar', conLogo:true, institucional:true }))) return;
   const fb = window.__firebase;
   await fb.deleteDoc(fb.doc(fb.db, 'usuarios_app', id));
   if(SESION_ACTUAL && SESION_ACTUAL.id === id){
@@ -5308,7 +5310,7 @@ async function borrarTodosLosDatos(){
   const statusEl = document.getElementById('ajustesBorrarStatusMsg');
   const conf = await confirmarPersonalizado(
     'Esta acción borra TODAS las solicitudes, protocolos, proveedores y oficinas guardados, sin posibilidad de deshacer.\n\nEscribí BORRAR para confirmar:',
-    { conInput:true, placeholder:'Escribí BORRAR', peligroso:true, textoAceptar:'Borrar todo', titulo:'Borrar todos los datos', conLogo:true }
+    { conInput:true, placeholder:'Escribí BORRAR', peligroso:true, textoAceptar:'Borrar todo', conLogo:true, institucional:true }
   );
   if(conf !== 'BORRAR'){
     statusEl.style.color = 'var(--ink-soft)';
