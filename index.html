@@ -597,7 +597,15 @@
   .hist-info b{font-family:var(--font-display);color:var(--heading);font-size:var(--fs-md);}
   .hist-info span{display:block;font-size:var(--fs-sm);color:var(--ink-soft);margin-top:3px;}
   .hist-actions{display:flex;gap:8px;}
-  .empty-state{text-align:center;padding:44px 10px;color:var(--ink-soft);font-size:14px;font-family:var(--font-display);font-style:italic;}
+  .empty-state{text-align:center;padding:var(--sp-6) var(--sp-3);color:var(--ink-soft);}
+  .empty-state-icon{
+    width:42px;height:42px;margin:0 auto var(--sp-3);
+    color:var(--paper-line);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .empty-state-title{font-family:var(--font-display);font-style:italic;font-size:var(--fs-md);color:var(--ink-soft);margin:0 0 4px;}
+  .empty-state-hint{font-size:var(--fs-sm);color:var(--ink-soft);opacity:0.75;max-width:340px;margin:0 auto;line-height:1.4;}
+  .empty-state .btn{margin-top:var(--sp-3);}
 
   .ajustes-desc{font-size:var(--fs-base);color:var(--ink-soft);margin:0 0 16px;line-height:1.5;max-width:640px;}
   .ajustes-resumen{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;}
@@ -3378,7 +3386,7 @@ async function generarReporte(){
 
   const cont = document.getElementById('repResultados');
   if(filtradas.length === 0){
-    cont.innerHTML = '<div class="empty-state">No se encontraron solicitudes con esos filtros.</div>';
+    cont.innerHTML = estadoVacio('busqueda', 'No se encontraron solicitudes con esos filtros.', 'Probá ajustar el rango de fechas u otros filtros.');
     return;
   }
 
@@ -3497,14 +3505,14 @@ async function imprimirReporte(){
 async function renderHistorial(){
   const list = document.getElementById('histList');
   if(SOLICITUDES_CACHE === null){
-    list.innerHTML = '<div class="empty-state">Sincronizando con la base de datos...</div>';
+    list.innerHTML = estadoVacio('sync', 'Sincronizando con la base de datos...');
     return;
   }
   const todas = await obtenerTodas();
   const q = (document.getElementById('histBuscar').value || '').trim().toLowerCase();
 
   if(todas.length === 0){
-    list.innerHTML = '<div class="empty-state">Todavía no guardaste ninguna solicitud.</div>';
+    list.innerHTML = estadoVacio('documento', 'Todavía no guardaste ninguna solicitud.', 'Cargá tu primera Solicitud de Compra desde la pestaña Solicitudes.');
     return;
   }
 
@@ -3526,8 +3534,8 @@ async function renderHistorial(){
 
   if(filtradas2.length === 0){
     const msg = mostrarBarasHistorialSolicitudes
-      ? '<div class="empty-state">Ninguna solicitud coincide con la búsqueda.</div>'
-      : '<div class="empty-state">Ninguna solicitud activa coincide con la búsqueda. <button class="btn btn-ghost" style="margin-top:10px;font-size:12px;" onclick="toggleFiltroBarasHistorial()">Mostrar dadas de baja</button></div>';
+      ? estadoVacio('busqueda', 'Ninguna solicitud coincide con la búsqueda.')
+      : estadoVacio('busqueda', 'Ninguna solicitud activa coincide con la búsqueda.', '<button class="btn btn-ghost" onclick="toggleFiltroBarasHistorial()">Mostrar dadas de baja</button>');
     list.innerHTML = msg;
     return;
   }
@@ -3583,6 +3591,31 @@ function limpiarCampoBusqueda(inputId, renderFn){
   actualizarBotonLimpiarBusqueda(inputId);
   if(typeof window[renderFn] === 'function') window[renderFn]();
   input.focus();
+}
+
+// Íconos simples reutilizables para los estados vacíos ("todavía no hay
+// datos") de las distintas listas de la app.
+const ICONOS_VACIO = {
+  documento: '<svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="13" y2="17"></line></svg>',
+  proveedor: '<svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path><circle cx="10" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="16" y1="11" x2="22" y2="11"></line></svg>',
+  oficina: '<svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path><path d="M9 21v-6h6v6"></path><path d="M9 10h.01"></path><path d="M15 10h.01"></path></svg>',
+  busqueda: '<svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>',
+  grafico: '<svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>',
+  actividad: '<svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>',
+  usuario: '<svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+  sync: '<svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>'
+};
+
+// Arma el HTML de un estado vacío consistente: ícono + título + una
+// sugerencia opcional (texto simple o un botón/acción en HTML).
+function estadoVacio(icono, titulo, sugerenciaHtml){
+  return `
+    <div class="empty-state">
+      <div class="empty-state-icon">${ICONOS_VACIO[icono] || ''}</div>
+      <div class="empty-state-title">${titulo}</div>
+      ${sugerenciaHtml ? `<div class="empty-state-hint">${sugerenciaHtml}</div>` : ''}
+    </div>
+  `;
 }
 
 function toggleCard(id){
@@ -4227,7 +4260,7 @@ async function autocompletarProveedor(){
 async function renderProveedores(){
   const cont = document.getElementById('listaProveedores');
   if(PROVEEDORES_CACHE === null){
-    cont.innerHTML = '<div class="empty-state">Sincronizando con la base de datos...</div>';
+    cont.innerHTML = estadoVacio('sync', 'Sincronizando con la base de datos...');
     return;
   }
   const todos = await obtenerProveedores();
@@ -4240,11 +4273,11 @@ async function renderProveedores(){
   ) : todos;
 
   if(todos.length === 0){
-    cont.innerHTML = '<div class="empty-state">Todavía no cargaste ningún proveedor.</div>';
+    cont.innerHTML = estadoVacio('proveedor', 'Todavía no cargaste ningún proveedor.', 'Completá el formulario de arriba para agregar el primero.');
     return;
   }
   if(filtrados.length === 0){
-    cont.innerHTML = '<div class="empty-state">Ningún proveedor coincide con la búsqueda.</div>';
+    cont.innerHTML = estadoVacio('busqueda', 'Ningún proveedor coincide con la búsqueda.');
     return;
   }
   cont.innerHTML = filtrados.map(p => `
@@ -4435,7 +4468,7 @@ async function renderSelectOficinas(){
 async function renderOficinas(){
   const cont = document.getElementById('listaOficinas');
   if(OFICINAS_CACHE === null){
-    cont.innerHTML = '<div class="empty-state">Sincronizando con la base de datos...</div>';
+    cont.innerHTML = estadoVacio('sync', 'Sincronizando con la base de datos...');
     return;
   }
   const todas = await obtenerOficinas();
@@ -4447,11 +4480,11 @@ async function renderOficinas(){
   ) : todas;
 
   if(todas.length === 0){
-    cont.innerHTML = '<div class="empty-state">Todavía no cargaste ninguna oficina.</div>';
+    cont.innerHTML = estadoVacio('oficina', 'Todavía no cargaste ninguna oficina.', 'Completá el formulario de arriba para agregar la primera.');
     return;
   }
   if(filtradas.length === 0){
-    cont.innerHTML = '<div class="empty-state">Ninguna oficina coincide con la búsqueda.</div>';
+    cont.innerHTML = estadoVacio('busqueda', 'Ninguna oficina coincide con la búsqueda.');
     return;
   }
   cont.innerHTML = filtradas.map(o => `
@@ -4802,7 +4835,7 @@ function cerrarModalVerProtocolo(){
 async function renderProtocolos(){
   const cont = document.getElementById('listaProtocolos');
   if(PROTOCOLOS_CACHE === null){
-    cont.innerHTML = '<div class="empty-state">Sincronizando con la base de datos...</div>';
+    cont.innerHTML = estadoVacio('sync', 'Sincronizando con la base de datos...');
     return;
   }
   const todos = await obtenerProtocolos();
@@ -4814,7 +4847,7 @@ async function renderProtocolos(){
   ) : todos;
 
   if(todos.length === 0){
-    cont.innerHTML = '<div class="empty-state">Todavía no guardaste ningún protocolo.</div>';
+    cont.innerHTML = estadoVacio('documento', 'Todavía no guardaste ningún protocolo.', 'Cargá tu primer Protocolo de Control desde la pestaña Protocolos.');
     return;
   }
   
@@ -4825,8 +4858,8 @@ async function renderProtocolos(){
 
   if(filtrados2.length === 0){
     const msg = mostrarBarasHistorialProtocolos
-      ? '<div class="empty-state">Ningún protocolo coincide con la búsqueda.</div>'
-      : '<div class="empty-state">Ningún protocolo activo coincide con la búsqueda. <button class="btn btn-ghost" style="margin-top:10px;font-size:12px;" onclick="toggleFiltroBarasProtocolos()">Mostrar dadas de baja</button></div>';
+      ? estadoVacio('busqueda', 'Ningún protocolo coincide con la búsqueda.')
+      : estadoVacio('busqueda', 'Ningún protocolo activo coincide con la búsqueda.', '<button class="btn btn-ghost" onclick="toggleFiltroBarasProtocolos()">Mostrar dadas de baja</button>');
     cont.innerHTML = msg;
     return;
   }
@@ -5118,7 +5151,7 @@ async function renderRegistroCarga(){
   }
 
   if(filtrados.length === 0){
-    cont.innerHTML = '<div class="empty-state">No hay registros de actividad todavía.</div>';
+    cont.innerHTML = estadoVacio('actividad', 'No hay registros de actividad todavía.', 'Vas a ver acá cada vez que alguien cargue, edite, dé de baja o elimine una solicitud.');
     return;
   }
 
@@ -5307,7 +5340,7 @@ async function renderUsuariosApp(){
   if(!cont) return;
   const todos = await obtenerUsuariosApp();
   if(todos.length === 0){
-    cont.innerHTML = '<div class="empty-state">No hay usuarios cargados.</div>';
+    cont.innerHTML = estadoVacio('usuario', 'No hay usuarios cargados.');
     return;
   }
   cont.innerHTML = todos.map(u => `
@@ -5414,7 +5447,7 @@ function renderGraficoGastos(datos){
 
   const hayDatos = datos.some(d => d.total > 0);
   if(!hayDatos){
-    cont.innerHTML = '<div class="empty-state">Todavía no hay gastos registrados para graficar.</div>';
+    cont.innerHTML = estadoVacio('grafico', 'Todavía no hay gastos registrados para graficar.', 'El gráfico va a aparecer solo apenas cargues tu primera Solicitud de Compra.');
     return;
   }
 
@@ -5470,7 +5503,7 @@ async function cargarVistaInicio(){
 
   const cont = document.getElementById('inicioActividad');
   if(actividad.length === 0){
-    cont.innerHTML = '<div class="empty-state">Todavía no hay actividad guardada.</div>';
+    cont.innerHTML = estadoVacio('actividad', 'Todavía no hay actividad guardada.');
     return;
   }
   cont.innerHTML = actividad.map(a => `
