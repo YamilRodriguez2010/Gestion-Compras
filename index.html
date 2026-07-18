@@ -1231,6 +1231,13 @@
     margin-right:10px;
   }
   .son-box{border:1.5px solid #333;padding:7px 16px;font-weight:700;font-size:16px;white-space:nowrap;}
+  .sheet-descuento-note{
+    text-align:right;
+    font-size:10.5px;
+    font-style:italic;
+    color:#444;
+    margin:2px 2px 0;
+  }
 
   table.sheet-partidas-table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px;}
   table.sheet-partidas-table th, table.sheet-partidas-table td{border:1px solid #333;padding:6px 10px;width:50%;}
@@ -2199,8 +2206,12 @@
     <div class="modal-body">
       <div class="grid">
         <div class="field">
-          <label>Oficina Solicitante *</label>
+          <label>Secretaría *</label>
           <input type="text" id="ofNombre" placeholder="Nombre de la oficina" oninput="this.classList.remove('input-error')">
+        </div>
+        <div class="field">
+          <label>Dependencia</label>
+          <input type="text" id="ofDependencia" placeholder="Dato informativo (no se imprime)">
         </div>
         <div class="field">
           <label>Responsable *</label>
@@ -3676,11 +3687,17 @@ function construirFilasHTML(itemsPagina){
   let rows = '';
   itemsPagina.forEach(it => {
     const rowTotal = calcularTotalConDescuento(it.cant, it.unit, it.descValor, it.descTipo);
+    const descValor = parseFloat(it.descValor) || 0;
+    let obsTexto = it.obs || '';
+    if(descValor > 0){
+      const notaDescuento = it.descTipo === 'fijo' ? `Desc. $ ${fmtMoney(descValor)}` : `Desc. ${descValor}%`;
+      obsTexto = obsTexto ? `${obsTexto} · ${notaDescuento}` : notaDescuento;
+    }
     rows += `<tr>
       <td style="text-align:center;">${it.cant || ''}</td>
       <td style="text-align:center;text-transform:capitalize;">${it.cant ? numeroALetras(it.cant) : ''}</td>
       <td>${escapeHtml(it.detalle || '')}</td>
-      <td>${escapeHtml(it.obs || '')}</td>
+      <td>${escapeHtml(obsTexto)}</td>
       <td style="text-align:right;">${it.unit ? '$ '+fmtMoney(it.unit) : ''}</td>
       <td style="text-align:right;">${rowTotal ? '$ '+fmtMoney(rowTotal) : ''}</td>
     </tr>`;
@@ -3699,7 +3716,7 @@ function construirPaginaHTML(data, itemsPagina, numeroPagina, totalPagina, dupli
   return `
   <div class="print-sheet">
     <div class="sheet-inner">
-      ${duplicado ? '<div class="dup-label">Duplicado</div>' : ''}
+      ${duplicado ? '<div class="dup-label">Duplicado</div>' : '<div class="dup-label">Original</div>'}
 
       <div class="sheet-header">
         <img class="seal-img hg-seal" src="data:image/png;base64,${SEAL_IMG_B64}" alt="Escudo Municipalidad de Villa Ángela">
@@ -3761,6 +3778,11 @@ function construirPaginaHTML(data, itemsPagina, numeroPagina, totalPagina, dupli
         <div class="son-left">SON PESOS : <span>${escapeHtml(sonPesosTxt)}</span></div>
         <div class="son-box">$ <span>${totalPagina > 0 ? fmtMoney(totalPagina) : ''}</span></div>
       </div>
+      ${(totalPagina > 0 && (parseFloat(data.descuentoGeneralValor) || 0) > 0) ? `
+      <div class="sheet-descuento-note">
+        Incluye descuento general: ${data.descuentoGeneralTipo === 'fijo' ? ('$ ' + fmtMoney(parseFloat(data.descuentoGeneralValor))) : (parseFloat(data.descuentoGeneralValor) + '%')}
+      </div>
+      ` : ''}
 
       <table class="sheet-partidas-table">
         <tr><th>PARTIDAS PRESUPUESTARIAS</th><th>SALDO DISPONIBLE</th></tr>
@@ -3809,9 +3831,13 @@ function generarPaginasImpresion(){
   chunks.forEach((itemsPagina, idx) => {
     // Todas las hojas de una misma carga comparten el mismo N° de solicitud.
     const numeroPagina = data.numero || '';
-    // Solo la última hoja muestra un total, y es el total combinado de
-    // todos los ítems de todas las hojas (no solo el de esa hoja).
-    const totalPagina = (idx === chunks.length - 1) ? totalCompleto : 0;
+    // Las hojas que no son la última muestran el subtotal de sus propios
+    // ítems. La última hoja muestra el total general de TODAS las hojas
+    // juntas (con los descuentos ya aplicados), no solo el de esa hoja.
+    const esUltima = idx === chunks.length - 1;
+    const totalPagina = esUltima
+      ? totalCompleto
+      : itemsPagina.reduce((s, it) => s + calcularTotalConDescuento(it.cant, it.unit, it.descValor, it.descTipo), 0);
 
     container.insertAdjacentHTML('beforeend', construirPaginaHTML(data, itemsPagina, numeroPagina, totalPagina, false));
     container.insertAdjacentHTML('beforeend', construirPaginaHTML(data, itemsPagina, numeroPagina, totalPagina, true));
@@ -3900,7 +3926,10 @@ async function exportarSolicitudesPDF(){
 
     chunks.forEach((itemsPagina, idx) => {
       const numeroPagina = data.numero || '';
-      const totalPagina = (idx === chunks.length - 1) ? totalCompleto : 0;
+      const esUltima = idx === chunks.length - 1;
+      const totalPagina = esUltima
+        ? totalCompleto
+        : itemsPagina.reduce((s, it) => s + calcularTotalConDescuento(it.cant, it.unit, it.descValor, it.descTipo), 0);
       container.insertAdjacentHTML('beforeend', construirPaginaHTML(data, itemsPagina, numeroPagina, totalPagina, false));
     });
   });
@@ -4268,6 +4297,7 @@ let currentOficinaId = null;
 function abrirModalOficina(){
   currentOficinaId = null;
   document.getElementById('ofNombre').value = '';
+  document.getElementById('ofDependencia').value = '';
   document.getElementById('ofResponsable').value = '';
   document.getElementById('ofTelefono').value = '';
   document.getElementById('ofNombre').classList.remove('input-error');
@@ -4285,6 +4315,7 @@ function cerrarModalOficina(){
 function cancelarEdicionOficina(){
   currentOficinaId = null;
   document.getElementById('ofNombre').value = '';
+  document.getElementById('ofDependencia').value = '';
   document.getElementById('ofResponsable').value = '';
   document.getElementById('ofTelefono').value = '';
   document.getElementById('ofNombre').classList.remove('input-error');
@@ -4298,6 +4329,7 @@ async function editarOficina(id){
   if(!o) return;
   currentOficinaId = id;
   document.getElementById('ofNombre').value = o.nombre || '';
+  document.getElementById('ofDependencia').value = o.dependencia || '';
   document.getElementById('ofResponsable').value = o.responsable || '';
   document.getElementById('ofTelefono').value = o.telefono || '';
   document.getElementById('ofNombre').classList.remove('input-error');
@@ -4332,6 +4364,7 @@ async function guardarOficina(){
   const oficina = {
     id: currentOficinaId || ('ofi_' + Date.now()),
     nombre: nombre,
+    dependencia: document.getElementById('ofDependencia').value.trim(),
     responsable: responsable,
     telefono: document.getElementById('ofTelefono').value.trim()
   };
@@ -4340,6 +4373,7 @@ async function guardarOficina(){
 
   currentOficinaId = null;
   document.getElementById('ofNombre').value = '';
+  document.getElementById('ofDependencia').value = '';
   document.getElementById('ofResponsable').value = '';
   document.getElementById('ofTelefono').value = '';
 
@@ -4388,6 +4422,7 @@ async function renderOficinas(){
   const q = (document.getElementById('ofBuscar').value || '').trim().toLowerCase();
   const filtradas = q ? todas.filter(o =>
     (o.nombre||'').toLowerCase().includes(q) ||
+    (o.dependencia||'').toLowerCase().includes(q) ||
     (o.responsable||'').toLowerCase().includes(q)
   ) : todas;
 
@@ -4403,6 +4438,7 @@ async function renderOficinas(){
     <div class="prov-item">
       <div class="prov-info">
         <b>${escapeHtml(o.nombre)}</b>
+        <span>${o.dependencia ? 'Dependencia: '+escapeHtml(o.dependencia) : ''}</span>
         <span>${o.responsable ? 'Responsable: '+escapeHtml(o.responsable) : ''}${o.responsable && o.telefono ? ' · ' : ''}${o.telefono ? 'Tel: '+escapeHtml(o.telefono) : ''}</span>
       </div>
       <div class="prov-actions">
