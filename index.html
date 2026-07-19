@@ -609,6 +609,26 @@
   .empty-state-hint{font-size:var(--fs-sm);color:var(--ink-soft);opacity:0.75;max-width:340px;margin:0 auto;line-height:1.4;}
   .empty-state .btn{margin-top:var(--sp-3);}
 
+  .comparacion-mes{display:flex;align-items:center;gap:var(--sp-5);flex-wrap:wrap;}
+  .comparacion-col{flex:1;min-width:140px;}
+  .comparacion-col label{display:block;font-size:var(--fs-sm);color:var(--ink-soft);margin-bottom:4px;}
+  .comparacion-col .monto{font-family:var(--font-display);font-size:var(--fs-xl);color:var(--heading);font-weight:600;}
+  .comparacion-badge{
+    display:inline-flex;align-items:center;gap:5px;
+    padding:5px 12px;border-radius:999px;
+    font-size:var(--fs-sm);font-weight:700;
+  }
+  .comparacion-badge.sube{background:rgba(161,61,46,0.12);color:var(--danger);}
+  .comparacion-badge.baja{background:rgba(47,107,79,0.12);color:var(--ok);}
+  .comparacion-badge.igual{background:var(--surface-2);color:var(--ink-soft);}
+
+  .estado-pase-fila{display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-2);}
+  .estado-pase-fila:last-child{margin-bottom:0;}
+  .estado-pase-nombre{flex:0 0 170px;font-size:var(--fs-sm);color:var(--ink);}
+  .estado-pase-barra-wrap{flex:1;background:var(--surface-2);border-radius:999px;height:10px;overflow:hidden;}
+  .estado-pase-barra{height:100%;border-radius:999px;background:var(--navy);transition:width .4s ease;}
+  .estado-pase-cant{flex:0 0 34px;text-align:right;font-size:var(--fs-sm);font-weight:700;color:var(--heading);}
+
   .ajustes-desc{font-size:var(--fs-base);color:var(--ink-soft);margin:0 0 16px;line-height:1.5;max-width:640px;}
   .ajustes-resumen{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;}
   #inicioGastosChart{
@@ -1556,6 +1576,17 @@
       <h2>Gastos totales por mes</h2>
       <p class="ajustes-desc">Suma de Solicitudes de Compra por mes, desde el mes más antiguo con datos hasta hoy (máximo 12 meses).</p>
       <div id="inicioGastosChart"></div>
+    </div>
+
+    <div class="card">
+      <h2>Este mes vs. el anterior</h2>
+      <div id="inicioComparacionMes"></div>
+    </div>
+
+    <div class="card">
+      <h2>Solicitudes activas por estado</h2>
+      <p class="ajustes-desc">Distribución del campo "Pase" entre las solicitudes que siguen activas.</p>
+      <div id="inicioEstadosPase"></div>
     </div>
 
     <div class="card">
@@ -5422,6 +5453,83 @@ function indiceMes(nombre){
   return MESES_ES.indexOf(String(nombre||'').toLowerCase());
 }
 
+function renderComparacionMes(solicitudes){
+  const cont = document.getElementById('inicioComparacionMes');
+  if(!cont) return;
+
+  const ahora = new Date();
+  const mesActualIdx = ahora.getMonth();
+  const anioActual = ahora.getFullYear();
+  let mesAnteriorIdx = mesActualIdx - 1;
+  let anioAnterior = anioActual;
+  if(mesAnteriorIdx < 0){ mesAnteriorIdx = 11; anioAnterior = anioActual - 1; }
+
+  let totalActual = 0, totalAnterior = 0;
+  solicitudes.forEach(s => {
+    const idx = indiceMes(s.mes);
+    if(idx === -1 || !s.anio) return;
+    const anioCompleto = 2000 + parseInt(s.anio, 10);
+    const monto = parseFloat(s.total) || 0;
+    if(anioCompleto === anioActual && idx === mesActualIdx) totalActual += monto;
+    if(anioCompleto === anioAnterior && idx === mesAnteriorIdx) totalAnterior += monto;
+  });
+
+  let badge;
+  if(totalAnterior === 0 && totalActual === 0){
+    badge = '<span class="comparacion-badge igual">Sin datos</span>';
+  } else if(totalAnterior === 0){
+    badge = '<span class="comparacion-badge sube">Nuevo</span>';
+  } else {
+    const variacion = ((totalActual - totalAnterior) / totalAnterior) * 100;
+    const flecha = variacion > 0 ? '▲' : (variacion < 0 ? '▼' : '—');
+    const clase = variacion > 0 ? 'sube' : (variacion < 0 ? 'baja' : 'igual');
+    badge = `<span class="comparacion-badge ${clase}">${flecha} ${Math.abs(variacion).toFixed(0)}%</span>`;
+  }
+
+  const MESES_NOMBRE = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  cont.innerHTML = `
+    <div class="comparacion-mes">
+      <div class="comparacion-col">
+        <label>${MESES_NOMBRE[mesAnteriorIdx]}</label>
+        <div class="monto">$ ${fmtMoney(totalAnterior)}</div>
+      </div>
+      <div class="comparacion-col">
+        <label>${MESES_NOMBRE[mesActualIdx]} (actual)</label>
+        <div class="monto">$ ${fmtMoney(totalActual)}</div>
+      </div>
+      <div>${badge}</div>
+    </div>
+  `;
+}
+
+function renderEstadosPase(solicitudes){
+  const cont = document.getElementById('inicioEstadosPase');
+  if(!cont) return;
+
+  const activas = solicitudes.filter(s => !s.estadoBaja);
+  if(activas.length === 0){
+    cont.innerHTML = estadoVacio('documento', 'No hay solicitudes activas todavía.');
+    return;
+  }
+
+  const categorias = ['Of. de Certificaciones', 'Of. de Pagos', 'En proceso', 'Sin asignar'];
+  const conteos = {};
+  categorias.forEach(c => conteos[c] = 0);
+  activas.forEach(s => {
+    const cat = categorias.includes(s.pase) ? s.pase : 'Sin asignar';
+    conteos[cat]++;
+  });
+
+  const max = Math.max(...Object.values(conteos), 1);
+  cont.innerHTML = categorias.map(cat => `
+    <div class="estado-pase-fila">
+      <div class="estado-pase-nombre">${escapeHtml(cat)}</div>
+      <div class="estado-pase-barra-wrap"><div class="estado-pase-barra" style="width:${(conteos[cat] / max * 100).toFixed(0)}%;"></div></div>
+      <div class="estado-pase-cant">${conteos[cat]}</div>
+    </div>
+  `).join('');
+}
+
 function construirGraficoGastosPorMes(solicitudes){
   const totalesPorMes = new Map(); // clave 'AAAA-M' (M = índice de mes 0-11) -> suma
 
@@ -5518,6 +5626,8 @@ async function cargarVistaInicio(){
   const protocolos = await obtenerProtocolos();
 
   construirGraficoGastosPorMes(solicitudes);
+  renderComparacionMes(solicitudes);
+  renderEstadosPase(solicitudes);
 
   const actividad = [
     ...solicitudes.map(s => ({
