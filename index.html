@@ -382,7 +382,9 @@
     border:1px solid var(--paper-line);
     padding:6px;
     vertical-align:top;
+    transition:background .12s ease;
   }
+  table.items tbody tr:hover td{background:var(--surface-2);}
   table.items input, table.items textarea{
     width:100%;
     border:none;
@@ -675,8 +677,19 @@
     flex:0 0 auto;
   }
   .card.collapsed .card-chevron{transform:rotate(-90deg);}
-  .card.collapsed .card-body{display:none;}
-  .card-body{margin-top:14px;}
+  .card-body{
+    margin-top:14px;
+    max-height:1400px;
+    opacity:1;
+    overflow:hidden;
+    transition:max-height .3s ease, opacity .25s ease, margin-top .3s ease;
+  }
+  .card.collapsed .card-body{
+    max-height:0;
+    opacity:0;
+    margin-top:0;
+    overflow:hidden;
+  }
 
   /* ---------- Selector de tema (header) ---------- */
   .theme-switcher{
@@ -803,7 +816,21 @@
     z-index:1000;
     padding:20px;
   }
-  .modal-overlay.open{display:flex;}
+  .modal-overlay.open{
+    display:flex;
+    animation:modalFadeIn .18s ease;
+  }
+  .modal-overlay.open .modal-box{
+    animation:modalPopIn .22s cubic-bezier(.2,.7,.3,1);
+  }
+  @keyframes modalFadeIn{
+    from{opacity:0;}
+    to{opacity:1;}
+  }
+  @keyframes modalPopIn{
+    from{opacity:0; transform:translateY(8px) scale(.97);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+  }
   /* Los modales de detalle (Ver) deben quedar por encima de otros modales
      (ej: Reportes) cuando se abren desde adentro de ellos. */
   #modalVerSolicitud, #modalVerProtocolo{z-index:1100;}
@@ -854,7 +881,9 @@
     padding:8px 10px;
     border-bottom:1px solid var(--paper-line);
     font-size:12.5px;
+    transition:background .12s ease;
   }
+  .actividad-row:hover{background:var(--surface-2);}
   .actividad-row:last-child{border-bottom:none;}
   .actividad-num{font-weight:600;color:var(--heading);flex:0 0 auto;white-space:nowrap;}
   .actividad-badge{
