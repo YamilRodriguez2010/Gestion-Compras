@@ -1733,9 +1733,13 @@
       <div class="card-body">
         <div class="grid">
           <div class="field">
-            <label>Oficina Solicitante *</label>
+            <label>Secretaría *</label>
             <input type="text" id="fOficina" list="fOficinaOpciones" autocomplete="off" placeholder="Escribí para buscar..." oninput="this.classList.remove('input-error')">
             <datalist id="fOficinaOpciones"></datalist>
+          </div>
+          <div class="field">
+            <label>Dependencia</label>
+            <input type="text" id="fDependencia" placeholder="Dato informativo (no se imprime)">
           </div>
           <div class="field">
             <label>Destino/s</label>
@@ -2305,10 +2309,6 @@
           <input type="text" id="ofNombre" placeholder="Nombre de la oficina" oninput="this.classList.remove('input-error')">
         </div>
         <div class="field">
-          <label>Dependencia</label>
-          <input type="text" id="ofDependencia" placeholder="Dato informativo (no se imprime)">
-        </div>
-        <div class="field">
           <label>Responsable *</label>
           <input type="text" id="ofResponsable" placeholder="Nombre del responsable" oninput="this.classList.remove('input-error')">
         </div>
@@ -2641,6 +2641,7 @@ async function nuevaSolicitud(){
   document.getElementById('fPase').value = '';
   document.getElementById('fOficina').value = '';
   document.getElementById('fDestino').value = '';
+  document.getElementById('fDependencia').value = '';
   document.getElementById('fSenor').value = '';
   document.getElementById('fCalle').value = '';
   document.getElementById('fLocalidad').value = '';
@@ -2693,6 +2694,7 @@ function recolectarDatos(){
     pase: document.getElementById('fPase').value,
     oficina: document.getElementById('fOficina').value,
     destino: document.getElementById('fDestino').value,
+    dependencia: document.getElementById('fDependencia').value,
     senor: document.getElementById('fSenor').value,
     calle: document.getElementById('fCalle').value,
     localidad: document.getElementById('fLocalidad').value,
@@ -2759,6 +2761,7 @@ function cargarDatos(sol){
   document.getElementById('fPase').value = sol.pase || '';
   document.getElementById('fOficina').value = sol.oficina || '';
   document.getElementById('fDestino').value = sol.destino || '';
+  document.getElementById('fDependencia').value = sol.dependencia || '';
   document.getElementById('fSenor').value = sol.senor || '';
   document.getElementById('fCalle').value = sol.calle || '';
   document.getElementById('fLocalidad').value = sol.localidad || '';
@@ -3259,6 +3262,7 @@ async function verSolicitud(id){
       <div class="ver-item"><label>Pase</label><span>${val(s.pase)}</span></div>
       <div class="ver-item"><label>Oficina</label><span>${val(s.oficina)}</span></div>
       <div class="ver-item"><label>Destino</label><span>${val(s.destino)}</span></div>
+      <div class="ver-item"><label>Dependencia</label><span>${val(s.dependencia)}</span></div>
       <div class="ver-item"><label>Proveedor</label><span>${val(s.senor)}</span></div>
       <div class="ver-item"><label>Calle</label><span>${val(s.calle)}</span></div>
       <div class="ver-item"><label>Localidad</label><span>${val(s.localidad)}</span></div>
@@ -4417,7 +4421,6 @@ let currentOficinaId = null;
 function abrirModalOficina(){
   currentOficinaId = null;
   document.getElementById('ofNombre').value = '';
-  document.getElementById('ofDependencia').value = '';
   document.getElementById('ofResponsable').value = '';
   document.getElementById('ofTelefono').value = '';
   document.getElementById('ofNombre').classList.remove('input-error');
@@ -4435,7 +4438,6 @@ function cerrarModalOficina(){
 function cancelarEdicionOficina(){
   currentOficinaId = null;
   document.getElementById('ofNombre').value = '';
-  document.getElementById('ofDependencia').value = '';
   document.getElementById('ofResponsable').value = '';
   document.getElementById('ofTelefono').value = '';
   document.getElementById('ofNombre').classList.remove('input-error');
@@ -4449,7 +4451,6 @@ async function editarOficina(id){
   if(!o) return;
   currentOficinaId = id;
   document.getElementById('ofNombre').value = o.nombre || '';
-  document.getElementById('ofDependencia').value = o.dependencia || '';
   document.getElementById('ofResponsable').value = o.responsable || '';
   document.getElementById('ofTelefono').value = o.telefono || '';
   document.getElementById('ofNombre').classList.remove('input-error');
@@ -4484,7 +4485,6 @@ async function guardarOficina(){
   const oficina = {
     id: currentOficinaId || ('ofi_' + Date.now()),
     nombre: nombre,
-    dependencia: document.getElementById('ofDependencia').value.trim(),
     responsable: responsable,
     telefono: document.getElementById('ofTelefono').value.trim()
   };
@@ -4493,7 +4493,6 @@ async function guardarOficina(){
 
   currentOficinaId = null;
   document.getElementById('ofNombre').value = '';
-  document.getElementById('ofDependencia').value = '';
   document.getElementById('ofResponsable').value = '';
   document.getElementById('ofTelefono').value = '';
 
@@ -4542,7 +4541,6 @@ async function renderOficinas(){
   const q = (document.getElementById('ofBuscar').value || '').trim().toLowerCase();
   const filtradas = q ? todas.filter(o =>
     (o.nombre||'').toLowerCase().includes(q) ||
-    (o.dependencia||'').toLowerCase().includes(q) ||
     (o.responsable||'').toLowerCase().includes(q)
   ) : todas;
 
@@ -4558,7 +4556,6 @@ async function renderOficinas(){
     <div class="prov-item">
       <div class="prov-info">
         <b>${escapeHtml(o.nombre)}</b>
-        <span>${o.dependencia ? 'Dependencia: '+escapeHtml(o.dependencia) : ''}</span>
         <span>${o.responsable ? 'Responsable: '+escapeHtml(o.responsable) : ''}${o.responsable && o.telefono ? ' · ' : ''}${o.telefono ? 'Tel: '+escapeHtml(o.telefono) : ''}</span>
       </div>
       <div class="prov-actions">
