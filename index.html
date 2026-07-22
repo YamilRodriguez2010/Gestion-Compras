@@ -573,8 +573,8 @@
     background:var(--surface-2);
     opacity:0.65;
   }
-  .hist-item-baja .hist-info b,
-  .hist-item-baja .hist-info span{
+  .hist-item-baja .hist-info-line b,
+  .hist-item-baja .hist-info-line .hist-detail{
     text-decoration:line-through;
     color:var(--ink-soft);
   }
@@ -603,9 +603,21 @@
     font-style:normal;
     text-transform:none;
   }
-  .hist-info b{font-family:var(--font-display);color:var(--heading);font-size:var(--fs-md);}
-  .hist-info span{display:block;font-size:var(--fs-sm);color:var(--ink-soft);margin-top:3px;}
-  .hist-actions{display:flex;gap:8px;}
+  .hist-info-line, .prov-info-line{
+    display:flex;align-items:baseline;gap:7px;
+    flex:1;min-width:0;
+    overflow-x:auto;white-space:nowrap;
+    padding-bottom:2px;
+    scrollbar-width:thin;
+  }
+  .hist-info-line b, .prov-info-line b{font-family:var(--font-display);color:var(--heading);font-size:var(--fs-md);white-space:nowrap;flex:0 0 auto;}
+  .hist-info-line .hist-sep, .prov-info-line .prov-sep{color:var(--paper-line);flex:0 0 auto;}
+  .hist-info-line .hist-detail, .prov-info-line .prov-detail{font-size:var(--fs-sm);color:var(--ink-soft);white-space:nowrap;flex:0 0 auto;}
+  .scroll-interno{
+    max-height:420px;
+    overflow-y:auto;
+    scrollbar-width:thin;
+  }
   .empty-state{text-align:center;padding:var(--sp-6) var(--sp-3);color:var(--ink-soft);}
   .empty-state-icon{
     width:42px;height:42px;margin:0 auto var(--sp-3);
@@ -2220,7 +2232,7 @@
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
         </button>
       </div>
-      <div id="listaRegistroCarga"></div>
+      <div id="listaRegistroCarga" class="scroll-interno"></div>
       <span class="status-msg" id="rcStatusMsg"></span>
       </div>
     </div>
@@ -3653,9 +3665,17 @@ async function renderHistorial(){
   const esInvitado = !!(SESION_ACTUAL && SESION_ACTUAL.rol === 'invitado');
   list.innerHTML = filtradas2.map(s => `
     <div class="hist-item ${s.estadoBaja ? 'hist-item-baja' : ''}">
-      <div class="hist-info">
-        <b>N° ${escapeHtml(s.numero || '(sin número)')}${s.estadoBaja ? ' <span class="badge-baja">Dada de baja</span>' : ''}</b> — ${escapeHtml(s.senor || 'Sin proveedor')}
-        <span>${escapeHtml(s.dia || '—')} de ${escapeHtml(s.mes || '—')} de 20${escapeHtml(s.anio || '—')} · Estado: ${s.pase ? escapeHtml(s.pase) : 'Sin asignar'} · Total: $ ${fmtMoney(s.total || 0)}</span>
+      <div class="hist-info-line">
+        <b>N° ${escapeHtml(s.numero || '(sin número)')}</b>
+        <span class="hist-sep">·</span>
+        <span class="hist-detail">${escapeHtml(s.senor || 'Sin proveedor')}</span>
+        <span class="hist-sep">·</span>
+        <span class="hist-detail">${escapeHtml(s.dia || '—')}/${escapeHtml(s.mes || '—')}/20${escapeHtml(s.anio || '—')}</span>
+        <span class="hist-sep">·</span>
+        <span class="hist-detail">${s.pase ? escapeHtml(s.pase) : 'Sin asignar'}</span>
+        <span class="hist-sep">·</span>
+        <span class="hist-detail">$ ${fmtMoney(s.total || 0)}</span>
+        ${s.estadoBaja ? '<span class="badge-baja">Dada de baja</span>' : ''}
       </div>
       <div class="hist-actions">
         <button class="row-icon-btn" onclick="verSolicitud('${s.id}')" title="Ver" aria-label="Ver">
@@ -4399,10 +4419,11 @@ async function renderProveedores(){
   }
   cont.innerHTML = filtrados.map(p => `
     <div class="prov-item">
-      <div class="prov-info">
+      <div class="prov-info-line">
         <b>${escapeHtml(p.nombre)}</b>
-        <span>${escapeHtml(p.domicilio||'')}${p.domicilio && p.localidad ? ', ' : ''}${escapeHtml(p.localidad||'')}</span>
-        <span>${p.cuil ? 'CUIL: '+escapeHtml(p.cuil) : ''}${p.cuil && p.telefono ? ' · ' : ''}${p.telefono ? 'Tel: '+escapeHtml(p.telefono) : ''}</span>
+        ${p.cuil ? `<span class="prov-sep">·</span><span class="prov-detail">CUIL: ${escapeHtml(p.cuil)}</span>` : ''}
+        ${(p.domicilio || p.localidad) ? `<span class="prov-sep">·</span><span class="prov-detail">${escapeHtml(p.domicilio||'')}${p.domicilio && p.localidad ? ', ' : ''}${escapeHtml(p.localidad||'')}</span>` : ''}
+        ${p.telefono ? `<span class="prov-sep">·</span><span class="prov-detail">Tel: ${escapeHtml(p.telefono)}</span>` : ''}
       </div>
       <div class="prov-actions">
         <button class="row-icon-btn" onclick="usarProveedor('${p.id}')" title="Usar" aria-label="Usar">
@@ -4600,9 +4621,10 @@ async function renderOficinas(){
   }
   cont.innerHTML = filtradas.map(o => `
     <div class="prov-item">
-      <div class="prov-info">
+      <div class="prov-info-line">
         <b>${escapeHtml(o.nombre)}</b>
-        <span>${o.responsable ? 'Responsable: '+escapeHtml(o.responsable) : ''}${o.responsable && o.telefono ? ' · ' : ''}${o.telefono ? 'Tel: '+escapeHtml(o.telefono) : ''}</span>
+        ${o.responsable ? `<span class="prov-sep">·</span><span class="prov-detail">Responsable: ${escapeHtml(o.responsable)}</span>` : ''}
+        ${o.telefono ? `<span class="prov-sep">·</span><span class="prov-detail">Tel: ${escapeHtml(o.telefono)}</span>` : ''}
       </div>
       <div class="prov-actions">
         <button class="row-icon-btn" onclick="usarOficina('${o.id}')" title="Usar" aria-label="Usar">
