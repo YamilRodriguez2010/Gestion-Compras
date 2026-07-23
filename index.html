@@ -1686,7 +1686,8 @@
               <option value="">-- Sin asignar --</option>
               <option value="Of. de Certificaciones">Of. de Certificaciones</option>
               <option value="Of. de Pagos">Of. de Pagos</option>
-              <option value="En proceso">En proceso</option>
+              <option value="Tesorería">Tesorería</option>
+              <option value="Of. de Compras">Of. de Compras</option>
             </select>
           </div>
         </div>
@@ -5584,7 +5585,7 @@ function renderEstadosPase(solicitudes){
     return;
   }
 
-  const categorias = ['Of. de Certificaciones', 'Of. de Pagos', 'En proceso', 'Sin asignar'];
+  const categorias = ['Of. de Certificaciones', 'Of. de Pagos', 'Tesorería', 'Of. de Compras', 'Sin asignar'];
   const conteos = {};
   categorias.forEach(c => conteos[c] = 0);
   activas.forEach(s => {
