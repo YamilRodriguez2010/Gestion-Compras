@@ -1783,7 +1783,12 @@
     <div class="card collapsed" id="cardSolDetalle">
       <div class="card-toggle" onclick="toggleCard('cardSolDetalle')">
         <h2>Detalle de la compra</h2>
-        <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        <div class="card-toggle-right">
+          <button type="button" class="icon-btn" onclick="event.stopPropagation(); abrirModalProducto()" title="Productos guardados" aria-label="Productos guardados">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7L12 3 4 7l8 4 8-4Z"></path><path d="M4 7v10l8 4 8-4V7"></path><path d="M12 11v10"></path></svg>
+          </button>
+          <svg class="card-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
       </div>
       <div class="card-body">
       <div class="table-scroll">
@@ -1801,6 +1806,7 @@
         </thead>
         <tbody id="itemsBody"></tbody>
       </table>
+      <datalist id="productoOpciones"></datalist>
       </div>
       <button class="add-row-btn btn-icon" onclick="addItemRow()" title="Agregar ítem" aria-label="Agregar ítem">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -2322,6 +2328,54 @@
   </div>
 </div>
 
+<!-- ===== MODAL DE PRODUCTOS GUARDADOS ===== -->
+<div class="modal-overlay" id="modalProducto" onclick="if(event.target===this) cerrarModalProducto()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Productos</h3>
+      <button class="modal-close" onclick="cerrarModalProducto()" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="grid">
+        <div class="field">
+          <label>Nombre del producto *</label>
+          <input type="text" id="prNombre" placeholder="Ej: Recuplast frente x 20 Lts" oninput="this.classList.remove('input-error')">
+        </div>
+        <div class="field">
+          <label>Precio unitario (opcional)</label>
+          <input type="number" id="prPrecio" min="0" step="0.01" placeholder="0,00" onblur="formatearImporteInput(this)">
+        </div>
+        <div class="field">
+          <label>Unidad de medida (opcional)</label>
+          <input type="text" id="prUnidad" placeholder="Ej: Litros, Unidad, Kg, Caja">
+        </div>
+        <div class="field">
+          <label>Proveedor habitual (opcional)</label>
+          <select id="prProveedor">
+            <option value="">-- Sin asignar --</option>
+          </select>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:14px;">
+        <button class="btn btn-primary btn-icon" onclick="guardarProducto()" title="Guardar producto" aria-label="Guardar producto">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+        </button>
+        <button class="btn btn-ghost btn-icon" onclick="cancelarEdicionProducto()" title="Cancelar edición" aria-label="Cancelar edición">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+        </button>
+        <span class="status-msg" id="productoStatusMsg"></span>
+      </div>
+
+      <hr class="modal-divider">
+      <h4>Productos guardados</h4>
+      <div class="field" style="margin-bottom:12px;">
+        <input type="text" id="prBuscar" placeholder="Buscar por nombre..." oninput="renderProductos()">
+      </div>
+      <div class="hist-list" id="listaProductos"></div>
+    </div>
+  </div>
+</div>
+
 <!-- ===== MODAL DE OFICINAS SOLICITANTES ===== -->
 <div class="modal-overlay" id="modalOficina" onclick="if(event.target===this) cerrarModalOficina()">
   <div class="modal-box">
@@ -2457,7 +2511,7 @@ function crearFila(data){
   tr.id = id;
   tr.innerHTML = `
     <td><input type="number" class="cant" min="0" value="${data?.cant ?? ''}" oninput="recalcular()"></td>
-    <td><textarea rows="1" placeholder="Ej: Artículo o servicio a adquirir" oninput="recalcular()">${data?.detalle ?? ''}</textarea></td>
+    <td><input type="text" class="detalle-item" list="productoOpciones" autocomplete="off" placeholder="Ej: Artículo o servicio a adquirir" value="${escapeHtml(data?.detalle ?? '')}" oninput="recalcular(); autocompletarProducto(this);"></td>
     <td><textarea rows="1" placeholder="Opcional">${data?.obs ?? ''}</textarea></td>
     <td><input type="number" class="precio" min="0" step="0.01" placeholder="0,00" value="${data?.unit ?? ''}" oninput="recalcular()" onblur="formatearImporteInput(this); recalcular();"></td>
     <td>
@@ -2705,8 +2759,8 @@ function recolectarDatos(){
   document.querySelectorAll('#itemsBody tr').forEach(tr=>{
     items.push({
       cant: parseFloat(tr.querySelector('.cant').value) || 0,
-      detalle: tr.querySelector('textarea:nth-of-type(1)') ? tr.querySelectorAll('textarea')[0].value : '',
-      obs: tr.querySelectorAll('textarea')[1] ? tr.querySelectorAll('textarea')[1].value : '',
+      detalle: tr.querySelector('.detalle-item') ? tr.querySelector('.detalle-item').value : '',
+      obs: tr.querySelector('textarea') ? tr.querySelector('textarea').value : '',
       unit: parseFloat(tr.querySelector('.precio').value) || 0,
       descValor: tr.querySelector('.descuento-valor') ? (parseFloat(tr.querySelector('.descuento-valor').value) || 0) : 0,
       descTipo: tr.querySelector('.descuento-tipo') ? tr.querySelector('.descuento-tipo').value : 'pct'
@@ -3079,7 +3133,7 @@ function marcarFilasIncompletas(){
   document.querySelectorAll('#itemsBody tr').forEach(tr => {
     const cantEl = tr.querySelector('.cant');
     const precioEl = tr.querySelector('.precio');
-    const detalleEl = tr.querySelectorAll('textarea')[0];
+    const detalleEl = tr.querySelector('.detalle-item');
     const cant = parseFloat(cantEl.value);
     const detalle = detalleEl.value.trim();
     const precioTexto = precioEl.value;
@@ -3109,7 +3163,7 @@ function validarItemsCompletos(){
     indice++;
     const cantEl = tr.querySelector('.cant');
     const precioEl = tr.querySelector('.precio');
-    const detalleEl = tr.querySelectorAll('textarea')[0];
+    const detalleEl = tr.querySelector('.detalle-item');
     const cant = parseFloat(cantEl.value);
     const detalle = detalleEl.value.trim();
     const precioTexto = precioEl.value;
@@ -3206,6 +3260,7 @@ async function guardarSolicitud(){
     statusEl.textContent = 'Guardado ✓ (N° ' + data.numero + ')';
     setTimeout(()=>{ statusEl.textContent=''; }, 2500);
     registrarAccionSolicitud(data.numero, esNueva ? 'Cargó' : 'Editó');
+    actualizarPreciosCatalogoProductos(data.items);
     // No hace falta llamar a renderHistorial() acá: el listener onSnapshot
     // de arriba se dispara solo apenas Firestore confirma el guardado.
   }catch(e){
@@ -4187,6 +4242,7 @@ function iniciarSincronizacionProveedores(){
         renderProveedores();
       }
       if(typeof renderSelectProveedores === 'function') renderSelectProveedores();
+      if(typeof renderSelectProductoProveedor === 'function') renderSelectProductoProveedor();
       if(typeof renderSelectLugarCompra === 'function') renderSelectLugarCompra();
     },
     (error) => {
@@ -4198,6 +4254,226 @@ function iniciarSincronizacionProveedores(){
 }
 if(window.__firebase){ iniciarSincronizacionProveedores(); }
 else { window.addEventListener('firebase-ready', iniciarSincronizacionProveedores, { once:true }); }
+
+// ---- Catálogo de Productos (reutilizable en el Detalle de la compra) ----
+const PRODUCTOS_KEY = 'productos-compra-data';
+let PRODUCTOS_CACHE = null;
+let currentProductoId = null;
+
+function iniciarSincronizacionProductos(){
+  const fb = window.__firebase;
+  fb.onSnapshot(
+    fb.collection(fb.db, 'productos'),
+    (snapshot) => {
+      PRODUCTOS_CACHE = snapshot.docs.map(d => d.data());
+      try{ localStorage.setItem(PRODUCTOS_KEY, JSON.stringify(PRODUCTOS_CACHE)); }catch(e){}
+      if(typeof renderProductos === 'function' && document.getElementById('modalProducto')?.classList.contains('open')){
+        renderProductos();
+      }
+      if(typeof renderDatalistProductos === 'function') renderDatalistProductos();
+    },
+    (error) => {
+      console.error('Error de sincronización con Firestore (productos):', error);
+    }
+  );
+}
+if(window.__firebase){ iniciarSincronizacionProductos(); }
+else { window.addEventListener('firebase-ready', iniciarSincronizacionProductos, { once:true }); }
+
+async function obtenerProductos(){
+  if(PRODUCTOS_CACHE !== null) return PRODUCTOS_CACHE;
+  try{
+    const raw = localStorage.getItem(PRODUCTOS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){
+    console.error('Error al leer productos (respaldo local):', e);
+    return [];
+  }
+}
+
+function abrirModalProducto(){
+  currentProductoId = null;
+  document.getElementById('prNombre').value = '';
+  document.getElementById('prPrecio').value = '';
+  document.getElementById('prUnidad').value = '';
+  document.getElementById('prProveedor').value = '';
+  document.getElementById('prNombre').classList.remove('input-error');
+  document.getElementById('productoStatusMsg').textContent = '';
+  document.getElementById('prBuscar').value = '';
+  document.getElementById('modalProducto').classList.add('open');
+  renderSelectProductoProveedor();
+  renderProductos();
+}
+
+function cerrarModalProducto(){
+  document.getElementById('modalProducto').classList.remove('open');
+}
+
+function cancelarEdicionProducto(){
+  currentProductoId = null;
+  document.getElementById('prNombre').value = '';
+  document.getElementById('prPrecio').value = '';
+  document.getElementById('prUnidad').value = '';
+  document.getElementById('prProveedor').value = '';
+  document.getElementById('prNombre').classList.remove('input-error');
+  document.getElementById('productoStatusMsg').textContent = '';
+}
+
+async function editarProducto(id){
+  const todos = await obtenerProductos();
+  const p = todos.find(x => x.id === id);
+  if(!p) return;
+  currentProductoId = id;
+  document.getElementById('prNombre').value = p.nombre || '';
+  document.getElementById('prPrecio').value = p.precio ?? '';
+  await renderSelectProductoProveedor();
+  document.getElementById('prUnidad').value = p.unidad || '';
+  document.getElementById('prProveedor').value = p.proveedor || '';
+  document.getElementById('prNombre').classList.remove('input-error');
+  const statusEl = document.getElementById('productoStatusMsg');
+  statusEl.style.color = 'var(--ink-soft)';
+  statusEl.textContent = 'Editando: ' + p.nombre;
+}
+
+async function guardarProducto(){
+  const statusEl = document.getElementById('productoStatusMsg');
+  const nombreEl = document.getElementById('prNombre');
+  const nombre = nombreEl.value.trim();
+  if(!nombre){
+    nombreEl.classList.add('input-error');
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'El nombre del producto es obligatorio';
+    return;
+  }
+  nombreEl.classList.remove('input-error');
+
+  const todos = await obtenerProductos();
+  const duplicado = todos.find(p => p.nombre.trim().toLowerCase() === nombre.toLowerCase() && p.id !== currentProductoId);
+  if(duplicado){
+    nombreEl.classList.add('input-error');
+    statusEl.style.color = 'var(--danger)';
+    statusEl.textContent = 'Ya existe un producto guardado con ese nombre';
+    return;
+  }
+
+  const precioTexto = document.getElementById('prPrecio').value;
+  const esEdicion = !!currentProductoId;
+  const producto = {
+    id: currentProductoId || ('prod_' + Date.now()),
+    nombre: nombre,
+    precio: precioTexto !== '' ? parseFloat(precioTexto) : null,
+    unidad: document.getElementById('prUnidad').value.trim(),
+    proveedor: document.getElementById('prProveedor').value
+  };
+  const fb = window.__firebase;
+  await fb.setDoc(fb.doc(fb.db, 'productos', producto.id), producto);
+
+  currentProductoId = null;
+  document.getElementById('prNombre').value = '';
+  document.getElementById('prPrecio').value = '';
+  document.getElementById('prUnidad').value = '';
+  document.getElementById('prProveedor').value = '';
+
+  statusEl.style.color = 'var(--ok)';
+  statusEl.textContent = esEdicion ? 'Producto actualizado ✓' : 'Producto guardado ✓';
+  setTimeout(()=>{ statusEl.textContent=''; }, 2000);
+  renderProductos();
+}
+
+async function eliminarProducto(id){
+  if(!obtenerHabilitarEliminar()){
+    alert('La función de eliminar está deshabilitada. Habilitala desde Ajustes > Administración > "Permitir eliminar solicitudes/protocolos".');
+    return;
+  }
+  if(!(await confirmarPersonalizado('¿Eliminar este producto del catálogo?', { peligroso:true, textoAceptar:'Eliminar', conLogo:true, institucional:true }))) return;
+  const fb = window.__firebase;
+  await fb.deleteDoc(fb.doc(fb.db, 'productos', id));
+  if(currentProductoId === id) cancelarEdicionProducto();
+  renderProductos();
+}
+
+async function renderProductos(){
+  const cont = document.getElementById('listaProductos');
+  if(!cont) return;
+  const todos = await obtenerProductos();
+  const q = (document.getElementById('prBuscar')?.value || '').trim().toLowerCase();
+  const filtrados = q ? todos.filter(p => (p.nombre||'').toLowerCase().includes(q)) : todos;
+
+  if(todos.length === 0){
+    cont.innerHTML = estadoVacio('documento', 'Todavía no cargaste ningún producto.', 'Completá el formulario de arriba para agregar el primero.');
+    return;
+  }
+  if(filtrados.length === 0){
+    cont.innerHTML = estadoVacio('busqueda', 'Ningún producto coincide con la búsqueda.');
+    return;
+  }
+
+  const ordenados = [...filtrados].sort((a,b) => a.nombre.localeCompare(b.nombre));
+  cont.innerHTML = ordenados.map(p => `
+    <div class="prov-item">
+      <div class="prov-info-line">
+        <b>${escapeHtml(p.nombre)}</b>
+        ${p.precio != null ? `<span class="prov-sep">·</span><span class="prov-detail">$ ${fmtMoney(p.precio)}</span>` : ''}
+        ${p.unidad ? `<span class="prov-sep">·</span><span class="prov-detail">${escapeHtml(p.unidad)}</span>` : ''}
+        ${p.proveedor ? `<span class="prov-sep">·</span><span class="prov-detail">${escapeHtml(p.proveedor)}</span>` : ''}
+      </div>
+      <div class="prov-actions">
+        <button class="row-icon-btn" onclick="editarProducto('${p.id}')" title="Editar" aria-label="Editar">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5Z"></path></svg>
+        </button>
+        ${obtenerHabilitarEliminar() ? `
+        <button class="row-icon-btn del" onclick="eliminarProducto('${p.id}')" title="Eliminar" aria-label="Eliminar">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+        </button>
+        ` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function renderDatalistProductos(){
+  const datalist = document.getElementById('productoOpciones');
+  if(!datalist) return;
+  const todos = await obtenerProductos();
+  const nombres = todos.map(p => p.nombre).filter(Boolean).sort((a,b) => a.localeCompare(b));
+  datalist.innerHTML = nombres.map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
+}
+
+// Al elegir/tipear un producto del catálogo en una fila del detalle, si hay
+// un precio guardado y el campo Precio Unitario está vacío, lo autocompleta.
+async function autocompletarProducto(inputDetalle){
+  const nombre = inputDetalle.value.trim();
+  if(!nombre) return;
+  const todos = await obtenerProductos();
+  const producto = todos.find(p => p.nombre.trim().toLowerCase() === nombre.toLowerCase());
+  if(!producto || producto.precio == null) return;
+  const tr = inputDetalle.closest('tr');
+  const precioEl = tr ? tr.querySelector('.precio') : null;
+  if(precioEl && !precioEl.value){
+    precioEl.value = producto.precio;
+    formatearImporteInput(precioEl);
+  }
+  recalcular();
+}
+
+// Guarda o actualiza el precio de cada producto usado en el catálogo, para
+// que la próxima vez ya aparezca con el último precio cargado.
+async function actualizarPreciosCatalogoProductos(items){
+  const fb = window.__firebase;
+  const todos = await obtenerProductos();
+  for(const it of items){
+    const nombre = (it.detalle || '').trim();
+    if(!nombre || !it.unit) continue;
+    const existente = todos.find(p => p.nombre.trim().toLowerCase() === nombre.toLowerCase());
+    const id = existente ? existente.id : ('prod_' + Date.now() + '_' + Math.random().toString(36).slice(2,7));
+    if(existente && existente.precio === it.unit) continue; // ya está al día
+    try{
+      await fb.setDoc(fb.doc(fb.db, 'productos', id), { id, nombre: existente ? existente.nombre : nombre, precio: it.unit });
+    }catch(e){
+      console.error('No se pudo actualizar el precio del producto en el catálogo:', e);
+    }
+  }
+}
 
 async function obtenerProveedores(){
   if(PROVEEDORES_CACHE !== null) return PROVEEDORES_CACHE;
@@ -4372,6 +4648,19 @@ async function renderSelectProveedores(){
   const nombres = todos.map(p => p.nombre).filter(Boolean).sort((a,b) => a.localeCompare(b));
   datalist.innerHTML = nombres.map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
   input.value = valorActual;
+}
+
+// Combo "Proveedor habitual" del catálogo de Productos (informativo).
+async function renderSelectProductoProveedor(){
+  const select = document.getElementById('prProveedor');
+  if(!select) return;
+  const valorActual = select.value;
+  const todos = await obtenerProveedores();
+  const nombres = todos.map(p => p.nombre).filter(Boolean).sort((a,b) => a.localeCompare(b));
+  let opciones = '<option value="">-- Sin asignar --</option>';
+  nombres.forEach(n => { opciones += `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`; });
+  select.innerHTML = opciones;
+  select.value = valorActual;
 }
 
 async function autocompletarProveedor(){
