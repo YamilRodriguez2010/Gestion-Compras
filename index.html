@@ -1266,10 +1266,10 @@
     align-items:start;
     margin-bottom:14px;
   }
-  .hg-seal{grid-column:1;grid-row:1;justify-self:center;width:78px;height:auto;margin-bottom:4px;}
-  .hg-name{grid-column:1;grid-row:2;justify-self:center;text-align:center;margin:0;font-size:17px;font-style:italic;font-weight:700;white-space:nowrap;}
-  .hg-addr{grid-column:1;grid-row:3;justify-self:center;text-align:center;margin:3px 0 0;font-size:10px;}
-  .hg-prov{grid-column:1;grid-row:4;justify-self:center;text-align:center;margin:2px 0 0;font-size:10px;font-variant:small-caps;letter-spacing:0.03em;}
+  .hg-seal{grid-column:1;grid-row:1;justify-self:center;width:66px;height:auto;margin-bottom:3px;}
+  .hg-name{grid-column:1;grid-row:2;justify-self:center;text-align:center;margin:0;font-size:14.5px;font-style:italic;font-weight:700;white-space:nowrap;}
+  .hg-addr{grid-column:1;grid-row:3;justify-self:center;text-align:center;margin:2px 0 0;font-size:8.5px;}
+  .hg-prov{grid-column:1;grid-row:4;justify-self:center;text-align:center;margin:1px 0 0;font-size:8.5px;font-variant:small-caps;letter-spacing:0.03em;}
 
   .hg-title-box{
     grid-column:2;grid-row:1;justify-self:end;align-self:center;
@@ -2354,9 +2354,8 @@
         </div>
         <div class="field">
           <label>Proveedor habitual (opcional)</label>
-          <select id="prProveedor">
-            <option value="">-- Sin asignar --</option>
-          </select>
+          <input type="text" id="prProveedor" list="prProveedorOpciones" autocomplete="off" placeholder="Escribí para buscar...">
+          <datalist id="prProveedorOpciones"></datalist>
         </div>
       </div>
       <div class="actions" style="margin-top:14px;">
@@ -2381,7 +2380,7 @@
 
 <!-- ===== MODAL DE OFICINAS SOLICITANTES ===== -->
 <div class="modal-overlay" id="modalOficina" onclick="if(event.target===this) cerrarModalOficina()">
-  <div class="modal-box">
+  <div class="modal-box modal-box-ancho">
     <div class="modal-header">
       <h3>Oficinas solicitantes</h3>
       <button class="modal-close" onclick="cerrarModalOficina()" aria-label="Cerrar">✕</button>
@@ -4655,15 +4654,14 @@ async function renderSelectProveedores(){
 
 // Combo "Proveedor habitual" del catálogo de Productos (informativo).
 async function renderSelectProductoProveedor(){
-  const select = document.getElementById('prProveedor');
-  if(!select) return;
-  const valorActual = select.value;
+  const input = document.getElementById('prProveedor');
+  const datalist = document.getElementById('prProveedorOpciones');
+  if(!input || !datalist) return;
+  const valorActual = input.value;
   const todos = await obtenerProveedores();
   const nombres = todos.map(p => p.nombre).filter(Boolean).sort((a,b) => a.localeCompare(b));
-  let opciones = '<option value="">-- Sin asignar --</option>';
-  nombres.forEach(n => { opciones += `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`; });
-  select.innerHTML = opciones;
-  select.value = valorActual;
+  datalist.innerHTML = nombres.map(n => `<option value="${escapeHtml(n)}"></option>`).join('');
+  input.value = valorActual;
 }
 
 async function autocompletarProveedor(){
