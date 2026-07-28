@@ -2371,7 +2371,7 @@
       <hr class="modal-divider">
       <h4>Productos guardados</h4>
       <div class="field" style="margin-bottom:12px;">
-        <input type="text" id="prBuscar" placeholder="Buscar por nombre..." oninput="renderProductos()">
+        <input type="text" id="prBuscar" placeholder="Buscar por nombre o proveedor..." oninput="renderProductos()">
       </div>
       <div class="hist-list" id="listaProductos"></div>
     </div>
@@ -4399,7 +4399,10 @@ async function renderProductos(){
   if(!cont) return;
   const todos = await obtenerProductos();
   const q = (document.getElementById('prBuscar')?.value || '').trim().toLowerCase();
-  const filtrados = q ? todos.filter(p => (p.nombre||'').toLowerCase().includes(q)) : todos;
+  const filtrados = q ? todos.filter(p =>
+    (p.nombre||'').toLowerCase().includes(q) ||
+    (p.proveedor||'').toLowerCase().includes(q)
+  ) : todos;
 
   if(todos.length === 0){
     cont.innerHTML = estadoVacio('documento', 'Todavía no cargaste ningún producto.', 'Completá el formulario de arriba para agregar el primero.');
