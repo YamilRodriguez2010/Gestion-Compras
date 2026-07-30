@@ -6069,6 +6069,7 @@ function iniciarSincronizacionAjustesApp(){
       if(typeof renderHistorial === 'function') renderHistorial();
       if(typeof renderProtocolos === 'function') renderProtocolos();
       if(typeof renderProveedores === 'function') renderProveedores();
+      if(typeof renderProductos === 'function') renderProductos();
     },
     (error) => {
       console.error('Error de sincronización con Firestore (ajustes_app):', error);
