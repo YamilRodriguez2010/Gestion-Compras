@@ -4419,7 +4419,6 @@ async function renderProductos(){
       <div class="prov-info-line">
         <b>${escapeHtml(p.nombre)}</b>
         ${p.precio != null ? `<span class="prov-sep">·</span><span class="prov-detail">$ ${fmtMoney(p.precio)}</span>` : ''}
-        ${p.unidad ? `<span class="prov-sep">·</span><span class="prov-detail">${escapeHtml(p.unidad)}</span>` : ''}
         ${p.proveedor ? `<span class="prov-sep">·</span><span class="prov-detail">${escapeHtml(p.proveedor)}</span>` : ''}
       </div>
       <div class="prov-actions">
